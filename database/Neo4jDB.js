@@ -1,8 +1,8 @@
 const neo4j = require("neo4j-driver");
-
+const config = require('./config')
 class Neo4jDB {
-  constructor({uri, user, password}) {
-    
+  constructor() {
+    const {uri, user, password} = config
     this.uri = uri
     this.user = user
     this.password = password
@@ -10,10 +10,8 @@ class Neo4jDB {
   }
 
   connect() {
-    this.driver = neo4j.driver(this.uri, neo4j.auth.basic(this.user, this.password));
-    
+    this.driver = neo4j.driver(this.uri, neo4j.auth.basic(this.user, this.password));    
   }
-
 
   async createRelationship(leftNode, rightNode, relation) {
     const session = this.driver.session({ database: "neo4j" });
@@ -55,4 +53,4 @@ class Neo4jDB {
   }
 }
 
-module.exports = Neo4jDB
+module.exports = new Neo4jDB()

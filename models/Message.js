@@ -1,22 +1,34 @@
+const { 
+  v4: uuidv4,
+} = require('uuid');
+
+const Neo4jDB = require('../database/Neo4jDB')
+
 class Message {
 
-  static async create(driver, message) {
-    const session = driver.session({ database: "neo4j" });
+  static async create(message) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
 
     try {
+      const uid = uuidv4()
       const tx = session.beginTransaction();
-      const getAuthorQuery = `MATCH (u: User) WHERE u.email = $email RETURN ID(u) AS uid LIMIT 1`;
-      const author = await tx.run(getAuthorQuery, { email: "toto@toto.fr" });
-      const authorId = author.records[0].get("uid");
+      let {authorId, tweetId} = message;
+      const getAuthorQuery = `MATCH (u: User) WHERE u.uid = $authorId RETURN u LIMIT 1`;
+      const author = await tx.run(getAuthorQuery, { authorId });
+      if (author.records.length === 0) {
+        throw 'l\'auteur n\'existe pas'
+      }
       const getTweetQuery = `
                             MATCH 
                               (t: Tweet) 
-                            WHERE t.authorId = $authorId
-                            RETURN t.uid AS uid
+                            WHERE t.uid = $tweetId
+                            RETURN t 
                             LIMIT 1`;
 
-      const tweet = await tx.run(getTweetQuery, { authorId });
-      const tweetId = tweet.records[0].get("uid");
+      const tweet = await tx.run(getTweetQuery, { tweetId });
+      if (tweet.records.length === 0) {
+        throw 'le tweet n\'existe pas'
+      }
       const writeQuery = `CREATE (message:Message {
                             uid: $uid,
                             content: $content,
@@ -28,6 +40,7 @@ class Message {
         ...message,
         tweetId,
         authorId,
+        uid
       });
       await tx.commit();
       return createdMessage.records[0];
