@@ -1,6 +1,6 @@
 const neo4j = require("neo4j-driver");
 
-class Neo4j {
+class Neo4jDB {
   constructor({uri, user, password}) {
     
     this.uri = uri
@@ -55,4 +55,4 @@ class Neo4j {
   }
 }
 
-module.exports = Neo4j
+module.exports = Neo4jDB

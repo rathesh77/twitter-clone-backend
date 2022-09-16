@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 
 const endpoints = require('./api/endpoints')
 const initData = require('./initData')
-const Neo4j = require('./database/Neo4j');
+const Neo4jDB = require('./database/Neo4jDB');
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -18,7 +18,7 @@ dotenv.config();
   const uri = process.env["NEO4J_URI"];
   const user = process.env["NEO4J_USER"];
   const password = process.env["NEO4J_PWD"];
-  const db = new Neo4j({uri, user, password})
+  const db = new Neo4jDB({uri, user, password})
   db.connect()
   await initData(db)
 
