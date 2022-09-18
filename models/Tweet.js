@@ -28,7 +28,8 @@ class Tweet {
                               likes: $likes, 
                               dislikes: $dislikes, 
                               shares: $shares, 
-                              mentionnedPeople: $mentionnedPeople
+                              mentionnedPeople: $mentionnedPeople,
+                              date: TIMESTAMP()
                             })
                             return t, t.uid AS uid
                           `;
@@ -49,7 +50,7 @@ class Tweet {
 
     try {
       const tx = session.beginTransaction();
-      const getAuthorTweetsQuery = `MATCH (t: Tweet) WHERE t.authorId = $authorId RETURN t, t.uid AS uid`;
+      const getAuthorTweetsQuery = `MATCH (t: Tweet {authorId: $authorId})<-[:WROTE_TWEET]-(u: User) RETURN t, t.uid AS uid, u ORDER BY t.date DESC`;
       const tweets = await tx.run(getAuthorTweetsQuery, { authorId });
     
       await tx.commit();
