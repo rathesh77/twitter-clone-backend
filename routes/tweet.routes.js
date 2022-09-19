@@ -28,7 +28,7 @@ router.post("/tweet", async function (req, res) {
     const userId = user.get('uid')
     const createdTweet = await Tweet.create(tweet);
     const tweetId = createdTweet.get('uid')
-
+    tweet.author = createdTweet.get('u').properties
     await Neo4jDB.createRelationship(
       { label: "User", uid: userId },
       { label: "Tweet", uid: tweetId },
@@ -43,7 +43,7 @@ router.post("/tweet", async function (req, res) {
 
 });
 
-router.get("/my-tweets", async function (req, res) {
+router.get("/my-related-tweets", async function (req, res) {
   const {userId} = req.query;
   if (
    userId == null
@@ -54,10 +54,33 @@ router.get("/my-tweets", async function (req, res) {
   }
 
   try {
-    const tweets = await Tweet.findAllByAuthorId(userId)
+    const tweets = await Tweet.findAllTweetsUserInteractedWith(userId)
 
     res.status(200);
     res.json(tweets);
+  } catch (e) {
+    console.log(e)
+    res.status(400);
+    res.json('error');
+  }
+
+});
+
+router.get("/deep-tweets", async function (req, res) {
+  const {userId} = req.query;
+  if (
+   userId == null
+  ) {
+    res.status(400);
+    res.json({ msg: "error" });
+    return;
+  }
+
+  try {
+    const deepTweets = await Tweet.findAllRelatedTweetsToUser(userId)
+
+    res.status(200);
+    res.json(deepTweets);
   } catch (e) {
     console.log(e)
     res.status(400);

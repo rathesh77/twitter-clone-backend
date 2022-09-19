@@ -31,15 +31,13 @@ class Message {
       }
       const writeQuery = `CREATE (message:Message {
                             uid: $uid,
-                            content: $content,
-                            authorId: $authorId,
-                            tweetId: $tweetId})
+                            content: $content
+                            })
                             return message, message.uid AS uid
                         `;
       const createdMessage = await tx.run(writeQuery, {
         ...message,
         tweetId,
-        authorId,
         uid
       });
       await tx.commit();
