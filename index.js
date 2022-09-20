@@ -13,7 +13,10 @@ const Neo4jDB = require('./database/Neo4jDB');
 require('./database/config')
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+  credentials: true,
+  origin: ['http://localhost:3000']
+}));
 app.use(session({
   secret: 'toto',
   resave: false,
