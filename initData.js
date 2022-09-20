@@ -7,7 +7,7 @@ async function initData(db) {
     try {
       await db.flushDB()
 
-      const user = { username: "user", email: "toto@toto.fr" };
+      const user = { username: "user", email: "toto@toto.fr", password: 'toto' };
       const tweet = {
         content: "tweet",
         likes: 0,

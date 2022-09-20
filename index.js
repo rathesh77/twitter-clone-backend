@@ -1,17 +1,31 @@
 const dotenv = require("dotenv");
 const cors = require("cors");
 const express = require("express");
+const session = require('express-session');
 const app = express();
 const bodyParser = require("body-parser");
 
 const tweetRoutes = require('./routes/tweet.routes')
+const userRoutes = require('./routes/user.routes')
+
 const initData = require('./initData')
 const Neo4jDB = require('./database/Neo4jDB');
 require('./database/config')
 
 app.use(bodyParser.json());
 app.use(cors());
+app.use(session({
+  secret: 'toto',
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: false,
+  }
+}
+))
+app.use('/', userRoutes)
 app.use('/', tweetRoutes)
+
 
 dotenv.config();
 
