@@ -35,6 +35,24 @@ router.post("/login", shouldNotBeAuthenticated, async function (req, res) {
 
 })
 
+router.get("/me", shouldBeAuthenticated, async function (req, res) {
+  try {
+    const currentUser = await User.findByUserId(req.session.userId)
+    if (!currentUser) {
+      res.status(400)
+      res.json({ msg: "error" })
+      return
+    }
+    const currentUserNode = currentUser.get('u').properties
+    res.status(200)
+    res.json(currentUserNode)
+  } catch (e) {
+    res.status(400)
+    res.json(e)
+  }
+
+})
+
 router.post("/register", shouldNotBeAuthenticated, async function (req, res) {
   const requestData = req.body
   console.log(requestData)
@@ -69,7 +87,7 @@ router.post("/register", shouldNotBeAuthenticated, async function (req, res) {
 
 })
 
-router.get("/logout", shouldBeAuthenticated, async function (req, res) {
+router.delete("/logout", shouldBeAuthenticated, async function (req, res) {
   req.session.userId = null
   res.status(200)
   res.json({ msg: 'logged out successfully' })

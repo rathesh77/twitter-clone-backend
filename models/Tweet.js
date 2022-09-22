@@ -72,12 +72,10 @@ class Tweet {
     try {
       const tx = session.beginTransaction();
       const getAllRelatedTweetsToUser = `
-                                          MATCH (u: User {uid: $userId})-[]->(t:Tweet)
-                                          OPTIONAL MATCH (u)-[*0..]->(userRelation: User)-[]->(tweetRelation: Tweet)
-                                          WHERE u.uid <> userRelation.uid
-                                          AND t.uid <> tweetRelation.uid
-                                          RETURN u, userRelation, t, tweetRelation
-                                          order by  t.date desc
+                                          MATCH (u: User {uid: $userId})
+                                          OPTIONAL MATCH (u)-[uuR*]->(userRelation: User)-[uRt]->(_t: Tweet)
+                                          RETURN u,(uuR), userRelation, type(uRt), _t
+                                          order by _t.date desc
                                           `;
       const tweets = await tx.run(getAllRelatedTweetsToUser, { userId });
 
@@ -99,6 +97,24 @@ class Tweet {
       const tx = session.beginTransaction();
       const getTweetQuery = `MATCH (t: Tweet) WHERE t.uid = $id RETURN t, t.uid AS uid LIMIT 1`;
       const tweet = await tx.run(getTweetQuery, { id });
+
+      await tx.commit();
+
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async findLimit1() {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (t: Tweet) RETURN t, t.uid as uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery);
 
       await tx.commit();
 

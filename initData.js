@@ -7,8 +7,8 @@ async function initData(db) {
     try {
       await db.flushDB()
 
-      const user = { username: "user", email: "toto@toto.fr", password: 'toto' };
-      const tweet = {
+      let user = { username: "user", email: "toto@toto.fr", password: 'toto' };
+      let tweet = {
         content: "tweet",
         likes: 0,
         dislikes: 32,
@@ -45,7 +45,20 @@ async function initData(db) {
         { label: "Message", uid: messageId },
         "WROTE_MESSAGE"
       );
-  
+      user = await User.create({email: 'titi@', username: 'titi', password: 'pwd'})
+      tweet = await Tweet.findLimit1('*')
+      await db.createRelationship(
+        { label: "User", uid: user.get('uid') },
+        { label: "Tweet", uid: tweet.get('uid') },
+        "TWEETED"
+      );
+      tweet = await Tweet.create({authorId: user.get('uid'), content: 'testtweet', likes: 0, dislikes: 0, shares: 0, mentionnedPeople: [], date: '0'})
+      await db.createRelationship(
+        { label: "User", uid: user.get('uid') },
+        { label: "Tweet", uid: tweet.get('uid') },
+        "TWEETED"
+      );
+    
   
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
