@@ -72,10 +72,13 @@ class Tweet {
     try {
       const tx = session.beginTransaction();
       const getAllRelatedTweetsToUser = `
-                                          MATCH (u: User {uid: $userId})
-                                          OPTIONAL MATCH (u)-[uuR*]->(userRelation: User)-[uRt]->(_t: Tweet)
-                                          RETURN u,(uuR), userRelation, type(uRt), _t
-                                          order by _t.date desc
+                                          MATCH (me: User {uid: $userId})
+                                          OPTIONAL MATCH (me)-[*]->(u: User)-[ut]->(t: Tweet)
+                                          RETURN u,type(ut), t
+                                          UNION
+                                          MATCH (t: Tweet)<-[ut]-(u: User {uid: $userId}) 
+                                          return  u,type(ut), t
+                                          ORDER BY t.date desc
                                           `;
       const tweets = await tx.run(getAllRelatedTweetsToUser, { userId });
 
