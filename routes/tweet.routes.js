@@ -112,4 +112,26 @@ router.get("/tweet/:id", async function (req, res) {
 
 });
 
+router.get("/tweet-author", async function (req, res) {
+  const {id} = req.query;
+  if (
+   id == null
+  ) {
+    res.status(400);
+    res.json({ msg: "error" });
+    return;
+  }
+
+  try {
+    const author = await User.findAuthoredTweet(id)
+
+    res.status(200);
+    res.json(author);
+  } catch (e) {
+    console.log(e)
+    res.status(400);
+    res.json('error');
+  }
+
+});
 module.exports = router

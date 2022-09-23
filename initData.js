@@ -50,13 +50,13 @@ async function initData(db) {
       await db.createRelationship(
         { label: "User", uid: user.get('uid') },
         { label: "Tweet", uid: tweet.get('uid') },
-        "TWEETED"
+        "RETWEETED"
       );
       tweet = await Tweet.create({authorId: user.get('uid'), content: 'testtweet', likes: 0, dislikes: 0, shares: 0, mentionnedPeople: [], date: '0'})
       await db.createRelationship(
         { label: "User", uid: user.get('uid') },
         { label: "Tweet", uid: tweet.get('uid') },
-        "TWEETED"
+        "WROTE_TWEET"
       );
     
   

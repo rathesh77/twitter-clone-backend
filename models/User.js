@@ -93,6 +93,24 @@ class User {
     }
   }
 
+  static async findAuthoredTweet(tweetId) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+    try {
+      const tx = session.beginTransaction();
+      const getUserWhoAuthoredTweet = `MATCH (u: User)-[:WROTE_TWEET]->(t: Tweet {uid: $tweetId}) RETURN u`;
+      const user = await tx.run(getUserWhoAuthoredTweet, { tweetId });
+      if (user.records.length === 0) {
+        return false
+      }
+      await tx.commit();
+      return user.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
 }
 
 module.exports = User
