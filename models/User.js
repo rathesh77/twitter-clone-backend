@@ -14,7 +14,8 @@ class User {
                                 username: $username, 
                                 email: $email,
                                 password: $password,
-                               uid: $uid
+                               uid: $uid,
+                               avatar: $avatar
                               })
                               RETURN u, u.uid AS uid
                             `;
