@@ -44,6 +44,7 @@ router.get("/me", shouldBeAuthenticated, async function (req, res) {
       return
     }
     const currentUserNode = currentUser.get('u').properties
+    delete currentUserNode.password
     res.status(200)
     res.json(currentUserNode)
   } catch (e) {
@@ -55,7 +56,6 @@ router.get("/me", shouldBeAuthenticated, async function (req, res) {
 
 router.post("/register", shouldNotBeAuthenticated, async function (req, res) {
   const requestData = req.body
-  console.log(requestData)
   if (
     requestData == null ||
     requestData.email == null ||

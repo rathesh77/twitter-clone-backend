@@ -31,17 +31,34 @@ class Message {
       }
       const writeQuery = `CREATE (message:Message {
                             uid: $uid,
-                            content: $content
+                            content: $content,
+                            date: TIMESTAMP()
                             })
                             return message, message.uid AS uid
                         `;
       const createdMessage = await tx.run(writeQuery, {
         ...message,
-        tweetId,
         uid
       });
       await tx.commit();
       return createdMessage.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async findByTweetId(id) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getMessagesQuery = `MATCH (t: Tweet {uid: $id})<-[:PART_OF]-(m: Tweet)<-[:WROTE_TWEET]-(u: User) RETURN u, m ORDER BY m.date DESC`;
+      const messages = await tx.run(getMessagesQuery, { id });
+
+      await tx.commit();
+      return messages.records;
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {

@@ -13,7 +13,6 @@ class Tweet {
       const uid = uuidv4()
       const tx = session.beginTransaction();
       let { authorId } = tweet;
-      console.log(authorId)
       const getAuthorQuery = `MATCH (u: User) WHERE u.uid = $authorId RETURN u LIMIT 1`;
       const author = await tx.run(getAuthorQuery, { authorId });
 
@@ -25,7 +24,7 @@ class Tweet {
                               uid: $uid,
                               content: $content,  
                               likes: $likes, 
-                              dislikes: $dislikes, 
+                              replies: $replies, 
                               shares: $shares, 
                               mentionnedPeople: $mentionnedPeople,
                               date: TIMESTAMP()
@@ -96,9 +95,26 @@ class Tweet {
     const session = Neo4jDB.driver.session({ database: "neo4j" });
 
     try {
-      console.log(id)
       const tx = session.beginTransaction();
       const getTweetQuery = `MATCH (t: Tweet) WHERE t.uid = $id RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, { id });
+
+      await tx.commit();
+
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async increaseRepliesCount(id) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (t: Tweet {uid: $id}) SET t.replies = t.replies + 1 RETURN t, t.uid AS uid LIMIT 1`;
       const tweet = await tx.run(getTweetQuery, { id });
 
       await tx.commit();
