@@ -120,6 +120,22 @@ class User {
     }
   }
 
+  static async findResults(search) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+    try {
+      const tx = session.beginTransaction();
+      const getResultsQuery = `MATCH (u: User) where u.username STARTS WITH $search return u`;
+      const results = await tx.run(getResultsQuery, { search });
+
+      await tx.commit();
+      return results.records;
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
 }
 
 module.exports = User

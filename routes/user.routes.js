@@ -54,6 +54,55 @@ router.get("/me", shouldBeAuthenticated, async function (req, res) {
 
 })
 
+router.get("/search", shouldBeAuthenticated, async function (req, res) {
+  try {
+    const {value} = req.query
+    if (!value) {
+      res.status(400)
+      res.json({ msg: "error" })
+      return
+    }
+    const results = await User.findResults(value)
+    if (!results) {
+      res.status(200)
+      res.json([])
+      return
+    }
+
+    res.status(200)
+    res.json(results)
+  } catch (e) {
+    res.status(400)
+    res.json(e)
+  }
+
+})
+
+router.get("/user", shouldBeAuthenticated, async function (req, res) {
+  try {
+    const {id} = req.query
+    if (!id) {
+      res.status(400)
+      res.json({ msg: "error" })
+      return
+    }
+    const user = await User.findByUserId(id)
+    if (!user) {
+      res.status(200)
+      res.json({msg: 'error'})
+      return
+    }
+    if (user.password)
+      delete user.password
+      
+    res.status(200)
+    res.json(user)
+  } catch (e) {
+    res.status(400)
+    res.json(e)
+  }
+
+})
 router.post("/register", shouldNotBeAuthenticated, async function (req, res) {
   const requestData = req.body
   if (

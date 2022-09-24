@@ -96,7 +96,7 @@ class Tweet {
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (t: Tweet) WHERE t.uid = $id RETURN t, t.uid AS uid LIMIT 1`;
+      const getTweetQuery = `MATCH (u: User)-[:WROTE_TWEET]->(t: Tweet) WHERE t.uid = $id RETURN t, u, t.uid AS uid LIMIT 1`;
       const tweet = await tx.run(getTweetQuery, { id });
 
       await tx.commit();
