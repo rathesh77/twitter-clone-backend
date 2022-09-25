@@ -11,7 +11,7 @@ async function initData(db) {
       let tweet = {
         content: "tweet",
         likes: 0,
-        replies: 0,
+        replies: 1,
         shares: 10,
         mentionnedPeople: ["a"],
       };
