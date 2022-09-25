@@ -7,7 +7,7 @@ async function initData(db) {
     try {
       await db.flushDB()
 
-      let user = { username: "user", email: "toto@toto.fr", password: 'toto', avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXcw5gUWzkd3e8I9wOHwxyrKxMHqiIktAMMWom0PMKDkj2j0rb0EAXJV9B_e_4qu6kApg&usqp=CAU' };
+      let user = { username: "user", email: "toto@toto.fr", password: 'toto', avatar: 'https://cdn.fansshare.com/photograph/victoriamoore/victoriamoore-113018010.jpg' };
       let tweet = {
         content: "tweet",
         likes: 0,
@@ -48,7 +48,7 @@ async function initData(db) {
         { label: "Tweet", uid: messageId },
         "WROTE_TWEET"
       );
-      user = await User.create({email: 'titi@', username: 'titi', password: 'pwd', avatar: 'https://pbs.twimg.com/profile_images/1557819838222966785/JeYuvKvT_400x400.jpg'})
+      user = await User.create({email: 'titi@', username: 'titi', password: 'pwd', avatar: 'https://pbs.twimg.com/profile_images/1192991057/144621476_400x400.jpg'})
       tweet = await Tweet.findLimit1('*')
       await db.createRelationship(
         { label: "User", uid: user.get('uid') },

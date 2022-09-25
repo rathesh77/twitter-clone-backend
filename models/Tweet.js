@@ -52,7 +52,7 @@ class Tweet {
 
     try {
       const tx = session.beginTransaction();
-      const AllTweetsUserInteractedWith = `MATCH (t: Tweet)<-[]-(u: User {uid: $userId}) RETURN DISTINCT t, t.uid AS uid, u ORDER BY t.date DESC`;
+      const AllTweetsUserInteractedWith = `MATCH (t: Tweet)<-[r]-(u: User {uid: $userId}) RETURN DISTINCT t, type(r), u ORDER BY t.date DESC`;
       const tweets = await tx.run(AllTweetsUserInteractedWith, { userId });
 
       await tx.commit();

@@ -1,8 +1,9 @@
 const router = require('express').Router()
 const User = require('../models/User')
-
+const Neo4jDB = require('../database/Neo4jDB');
 const shouldNotBeAuthenticated = require('../middlewares/shouldNotBeAuthenticated')
 const shouldBeAuthenticated = require('../middlewares/shouldBeAuthenticated')
+const { doesUserFollowRecipient } = require('../models/User')
 
 router.post("/login", shouldNotBeAuthenticated, async function (req, res) {
   const requestData = req.body
@@ -134,6 +135,50 @@ router.post("/register", shouldNotBeAuthenticated, async function (req, res) {
     res.json(e)
   }
 
+})
+
+router.put("/follow/:userId", shouldBeAuthenticated, async function (req, res) {
+  const {userId} = req.params
+  if (!userId) {
+    res.status(400)
+    res.json({ msg: 'invalid params' })
+    return
+  }
+  const recipientId = userId
+
+  if (await doesUserFollowRecipient(req.session.userId, recipientId) !== false) {
+    res.status(400)
+    res.json({ msg: 'you already follow this user' })
+    return
+  }
+
+  await Neo4jDB.createRelationship(
+    { label: "User", uid: req.session.userId },
+    { label: "User", uid: recipientId },
+    "KNOWS"
+  );
+  res.status(200)
+  res.json({ msg: 'success' })
+})
+
+router.get("/follow/:userId", shouldBeAuthenticated, async function (req, res) {
+  const {userId} = req.params
+  if (!userId) {
+    res.status(400)
+    res.json({ msg: 'invalid params' })
+    return
+  }
+  const recipientId = userId
+
+  const relation = await doesUserFollowRecipient(req.session.userId, recipientId)
+  if (relation !== false) {
+    res.status(200)
+    res.json(relation)
+    return
+  }
+
+  res.status(200)
+  res.json(false)
 })
 
 router.delete("/logout", shouldBeAuthenticated, async function (req, res) {

@@ -136,6 +136,24 @@ class User {
     }
   }
 
+  static async doesUserFollowRecipient(userId, recipientId) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+    try {
+      const tx = session.beginTransaction();
+      const query = `MATCH (u: User {uid: $userId})-[:KNOWS]->(r: User {uid: $recipientId}) RETURN u, r LIMIT 1`;
+      const results = await tx.run(query, { userId, recipientId });
+      console.log(results)
+      if (results.records.length === 0) {
+        return false
+      }
+      await tx.commit();
+      return results.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
 }
 
 module.exports = User

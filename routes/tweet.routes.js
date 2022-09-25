@@ -30,6 +30,7 @@ router.post("/tweet", async function (req, res) {
     const createdTweetId = createdTweet.get('uid')
     tweet.author = createdTweet.get('u').properties
     tweet.uid = createdTweetId
+    tweet.date = createdTweet.get('t').properties.date
     await Neo4jDB.createRelationship(
       { label: "User", uid: userId },
       { label: "Tweet", uid: createdTweetId },
