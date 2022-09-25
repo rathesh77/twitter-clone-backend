@@ -142,7 +142,6 @@ class User {
       const tx = session.beginTransaction();
       const query = `MATCH (u: User {uid: $userId})-[:KNOWS]->(r: User {uid: $recipientId}) RETURN u, r LIMIT 1`;
       const results = await tx.run(query, { userId, recipientId });
-      console.log(results)
       if (results.records.length === 0) {
         return false
       }
