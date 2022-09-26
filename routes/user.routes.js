@@ -181,6 +181,13 @@ router.get("/follow/:userId", shouldBeAuthenticated, async function (req, res) {
   res.json(false)
 })
 
+router.get("/suggestions", shouldBeAuthenticated, async function (req, res) {
+
+  const suggestions = await User.getSuggestionsForUser(req.session.userId)
+  res.status(200)
+  res.json(suggestions)
+})
+
 router.delete("/logout", shouldBeAuthenticated, async function (req, res) {
   req.session.userId = null
   res.status(200)

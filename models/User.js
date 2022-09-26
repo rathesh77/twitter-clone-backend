@@ -154,6 +154,27 @@ class User {
       await session.close();
     }
   }
+
+  static async getSuggestionsForUser(userId) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+    try {
+      const tx = session.beginTransaction();
+      const query = `
+                    MATCH (u: User {uid: $userId})-[:KNOWS]->(r: User)-[:KNOWS]->(world) 
+                    WHERE NOT (u)-[:KNOWS]->(world)
+                    AND u.uid <> world.uid
+                    RETURN DISTINCT u, world LIMIT 1
+                    `;
+      const results = await tx.run(query, { userId });
+    
+      await tx.commit();
+      return results.records;
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
 }
 
 module.exports = User
