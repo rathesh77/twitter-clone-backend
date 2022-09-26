@@ -124,7 +124,7 @@ class User {
     const session = Neo4jDB.driver.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
-      const getResultsQuery = `MATCH (u: User) where u.username STARTS WITH $search return u`;
+      const getResultsQuery = `MATCH (u: User) where u.username =~ '(?i)'+$search+'.*' return u`;
       const results = await tx.run(getResultsQuery, { search });
 
       await tx.commit();
