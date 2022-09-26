@@ -19,7 +19,8 @@ class User {
                                 email: $email,
                                 password: $hashedPassword,
                                uid: $uid,
-                               avatar: $avatar
+                               avatar: $avatar,
+                               banner: $banner
                               })
                               RETURN u, u.uid AS uid
                             `;
