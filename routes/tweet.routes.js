@@ -4,8 +4,9 @@ const Tweet = require('../models/Tweet')
 
 const Neo4jDB = require('../database/Neo4jDB');
 const Message = require('../models/Message');
+const shouldBeAuthenticated = require('../middlewares/shouldBeAuthenticated')
 
-router.post("/tweet", async function (req, res) {
+router.post("/tweet", shouldBeAuthenticated, async function (req, res) {
   const requestData = req.body.data;
   if (
     requestData.authorId == null ||
@@ -19,18 +20,12 @@ router.post("/tweet", async function (req, res) {
 
   const tweet = {
     ...requestData,
-    likes: 0,
-    replies: 0,
-    shares: 0,
   };
   try {
     const user = await User.findByUserId(requestData.authorId)
     const userId = user.get('uid')
     const createdTweet = await Tweet.create(tweet);
     const createdTweetId = createdTweet.get('uid')
-    tweet.author = createdTweet.get('u').properties
-    tweet.uid = createdTweetId
-    tweet.date = createdTweet.get('t').properties.date
     await Neo4jDB.createRelationship(
       { label: "User", uid: userId },
       { label: "Tweet", uid: createdTweetId },
@@ -45,7 +40,7 @@ router.post("/tweet", async function (req, res) {
       await Tweet.increaseRepliesCount(requestData.tweetId)
     }
     res.status(200);
-    res.json({...tweet});
+    res.json({...createdTweet.get('t').properties, author: user.get('u').properties});
   } catch (e) {
     res.status(400);
     console.log(e)
@@ -54,7 +49,7 @@ router.post("/tweet", async function (req, res) {
 
 });
 
-router.get("/my-related-tweets", async function (req, res) {
+router.get("/my-related-tweets", shouldBeAuthenticated, async function (req, res) {
   const {userId} = req.query;
   if (
    userId == null
@@ -77,7 +72,7 @@ router.get("/my-related-tweets", async function (req, res) {
 
 });
 
-router.get("/deep-tweets", async function (req, res) {
+router.get("/deep-tweets", shouldBeAuthenticated, async function (req, res) {
   const {userId} = req.query;
   if (
    userId == null
@@ -100,7 +95,7 @@ router.get("/deep-tweets", async function (req, res) {
 
 });
 
-router.get("/tweet/:id", async function (req, res) {
+router.get("/tweet/:id", shouldBeAuthenticated, async function (req, res) {
   const {id} = req.params;
   if (
    id == null
@@ -113,8 +108,9 @@ router.get("/tweet/:id", async function (req, res) {
   try {
     const tweet = await Tweet.findById(id)
     if (tweet == null) {
-      res.status(404);
+      res.status(400);
       res.json({msg:'error'});
+      return
     }
     res.status(200);
     res.json(tweet);
@@ -126,7 +122,7 @@ router.get("/tweet/:id", async function (req, res) {
 
 });
 
-router.get("/tweet/:id/messages", async function (req, res) {
+router.get("/tweet/:id/messages", shouldBeAuthenticated, async function (req, res) {
   const {id} = req.params;
   if (
    id == null
@@ -139,7 +135,7 @@ router.get("/tweet/:id/messages", async function (req, res) {
   try {
     const tweet = await Tweet.findById(id)
     if (tweet == null) {
-      res.status(404);
+      res.status(400);
       res.json({msg:'error'});
       return
     }
@@ -156,7 +152,7 @@ router.get("/tweet/:id/messages", async function (req, res) {
 
 });
 
-router.get("/tweet-author", async function (req, res) {
+router.get("/tweet-author", shouldBeAuthenticated, async function (req, res) {
   const {id} = req.query;
   if (
    id == null
@@ -179,7 +175,7 @@ router.get("/tweet-author", async function (req, res) {
 
 });
 
-router.post("/message", async function (req, res) {
+router.post("/message", shouldBeAuthenticated, async function (req, res) {
   const {authorId, content, mentionnedPeople, tweetId} = req.body.data;
   if (
     authorId == null || 
@@ -208,6 +204,44 @@ router.post("/message", async function (req, res) {
     );
     res.status(200);
     res.json(message);
+  } catch (e) {
+    console.log(e)
+    res.status(400);
+    res.json('error');
+  }
+
+});
+
+router.post("/retweet/:id", shouldBeAuthenticated, async function (req, res) {
+  const {id} = req.params;
+  if (id == null) {
+    res.status(400);
+    res.json({ msg: "error" });
+    return;
+  }
+
+  try {
+    const didUserAlreadyRetweet = await Tweet.findUserThatRetweeted(id, req.session.userId)
+    if (didUserAlreadyRetweet != null) {
+      res.status(400);
+      res.json({msg:'you already retweeted this tweet'});
+      return
+    }
+    const tweet = await Tweet.findById(id)
+    
+    if (tweet == null) {
+      res.status(400);
+      res.json({msg:'error'});
+      return
+    }
+    await Tweet.retweet(id)
+    await Neo4jDB.createRelationship(
+      { label: "User", uid: req.session.userId },
+      { label: "Tweet", uid: id },
+      "RETWEETED"
+    );
+    res.status(200);
+    res.json(tweet);
   } catch (e) {
     console.log(e)
     res.status(400);
