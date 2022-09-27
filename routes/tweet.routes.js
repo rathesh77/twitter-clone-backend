@@ -5,6 +5,25 @@ const Tweet = require('../models/Tweet')
 const Neo4jDB = require('../database/Neo4jDB');
 const Message = require('../models/Message');
 const shouldBeAuthenticated = require('../middlewares/shouldBeAuthenticated')
+const fs = require('fs')
+const multer = require('multer')
+
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './uploads');
+    },
+    filename: (req, file, cb) => {
+        const fileName = file.originalname.toLowerCase().split(' ').join('-');
+        cb(null, fileName)
+    },
+});
+
+const upload = multer({ storage: storage })
+
+router.post("/chunks", upload.single('file'), shouldBeAuthenticated, async function (req, res) {
+  res.status(200)
+  res.json({...req.file})
+})
 
 router.post("/tweet", shouldBeAuthenticated, async function (req, res) {
   const requestData = req.body.data;

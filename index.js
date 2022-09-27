@@ -12,6 +12,7 @@ const initData = require('./initData')
 const Neo4jDB = require('./database/Neo4jDB');
 require('./database/config')
 
+app.use(express.static('uploads'))
 app.use(bodyParser.json());
 app.use(cors({
   credentials: true,
