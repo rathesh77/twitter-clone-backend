@@ -5,7 +5,6 @@ const Tweet = require('../models/Tweet')
 const Neo4jDB = require('../database/Neo4jDB');
 const Message = require('../models/Message');
 const shouldBeAuthenticated = require('../middlewares/shouldBeAuthenticated')
-const fs = require('fs')
 const multer = require('multer')
 
 let storage = multer.diskStorage({
@@ -18,9 +17,9 @@ let storage = multer.diskStorage({
     },
 });
 
-const upload = multer({ storage: storage })
+const upload = multer({ storage })
 
-router.post("/chunks", upload.single('file'), shouldBeAuthenticated, async function (req, res) {
+router.post("/media", upload.single('file'), shouldBeAuthenticated, async function (req, res) {
   res.status(200)
   res.json({...req.file})
 })
