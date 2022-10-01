@@ -188,6 +188,37 @@ router.get("/suggestions", shouldBeAuthenticated, async function (req, res) {
   res.json(suggestions)
 })
 
+router.get("/followers", shouldBeAuthenticated, async function (req, res) {
+
+  const {id} = req.query
+  if (!id) {
+    res.status(400)
+    res.json({ msg: 'invalid params' })
+    return
+  }
+
+  const result = await User.getFollowers(id)
+  const count = result.toInt()
+  res.status(200)
+  res.json({count})
+})
+
+router.get("/followings", shouldBeAuthenticated, async function (req, res) {
+
+  const {id} = req.query
+  if (!id) {
+    res.status(400)
+    res.json({ msg: 'invalid params' })
+    return
+  }
+
+  const result = await User.getFollowings(id)
+  const count = result.toInt()
+  res.status(200)
+  res.json({count})
+})
+
+
 router.delete("/logout", shouldBeAuthenticated, async function (req, res) {
   req.session.userId = null
   res.status(200)

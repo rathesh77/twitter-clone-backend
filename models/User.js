@@ -175,6 +175,45 @@ class User {
       await session.close();
     }
   }
+
+  
+  static async getFollowers(userId) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+    try {
+      const tx = session.beginTransaction();
+      const query = `
+                    MATCH (u: User {uid: $userId})<-[:KNOWS]-(r: User)
+                    return count (*) as count
+                    `;
+      const results = await tx.run(query, { userId });
+    
+      await tx.commit();
+      return results.records[0].get('count');
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async getFollowings(userId) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+    try {
+      const tx = session.beginTransaction();
+      const query = `
+                    MATCH (u: User {uid: $userId})-[:KNOWS]->(r: User)
+                    return count (*) as count
+                    `;
+      const results = await tx.run(query, { userId });
+    
+      await tx.commit();
+      return results.records[0].get('count');
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
 }
 
 module.exports = User
