@@ -38,8 +38,12 @@ dotenv.config();
 (async ()=>{
 
   Neo4jDB.connect()
-  if (process.argv.includes('initData'))
-    await initData(Neo4jDB)
+  if (process.argv.includes('initData')) {
+    fs.readdir('uploads', function(err, files){
+      files.forEach(f => fs.rmSync('uploads/'+f))
+    })
+    initData(Neo4jDB)
+  }
 
   const server = app.listen(8080, null, function () {
     console.log("app is listening on port 8080");
