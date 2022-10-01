@@ -194,43 +194,6 @@ router.get("/tweet-author", shouldBeAuthenticated, async function (req, res) {
 
 });
 
-router.post("/message", shouldBeAuthenticated, async function (req, res) {
-  const {authorId, content, mentionnedPeople, tweetId} = req.body.data;
-  if (
-    authorId == null || 
-   content == null || 
-   mentionnedPeople == null || 
-   tweetId == null 
-
-  ) {
-    res.status(400);
-    res.json({ msg: "error" });
-    return;
-  }
-
-  try {
-    const message = await Message.create(req.body.data)
-    const messageId = message._fields[1]
-    await Neo4jDB.createRelationship(
-      { label: "User", uid: authorId },
-      { label: "Message", uid: messageId },
-      "WROTE_MESSAGE"
-    );
-    await Neo4jDB.createRelationship(
-      { label: "Message", uid: messageId },
-      { label: "Tweet", uid: tweetId },
-      "PART_OF"
-    );
-    res.status(200);
-    res.json(message);
-  } catch (e) {
-    console.log(e)
-    res.status(400);
-    res.json('error');
-  }
-
-});
-
 router.post("/retweet/:id", shouldBeAuthenticated, async function (req, res) {
   const {id} = req.params;
   if (id == null) {
@@ -239,20 +202,30 @@ router.post("/retweet/:id", shouldBeAuthenticated, async function (req, res) {
     return;
   }
 
-  try {
-    const didUserAlreadyRetweet = await Tweet.findUserThatRetweeted(id, req.session.userId)
-    if (didUserAlreadyRetweet != null) {
-      res.status(400);
-      res.json({msg:'you already retweeted this tweet'});
-      return
-    }
-    const tweet = await Tweet.findById(id)
+  const tweet = await Tweet.findById(id)
     
+  try {
     if (tweet == null) {
       res.status(400);
       res.json({msg:'error'});
       return
     }
+    
+    const didUserAlreadyRetweet = await Tweet.findUserThatRetweeted(id, req.session.userId)
+    if (didUserAlreadyRetweet != null) {
+
+      await Tweet.cancelRetweet(id)
+      await Neo4jDB.removeRelationship(
+        { label: "User", uid: req.session.userId },
+        { label: "Tweet", uid: id },
+        "RETWEETED"
+      );
+
+      res.status(200);
+      res.json({msg:'you cancelled retweet', retweetsIncrement: -1});
+      return
+    }
+
     await Tweet.retweet(id)
     await Neo4jDB.createRelationship(
       { label: "User", uid: req.session.userId },
@@ -260,7 +233,120 @@ router.post("/retweet/:id", shouldBeAuthenticated, async function (req, res) {
       "RETWEETED"
     );
     res.status(200);
-    res.json(tweet);
+    res.json({tweet, retweetsIncrement: 1});
+  } catch (e) {
+    console.log(e)
+    res.status(400);
+    res.json('error');
+  }
+
+});
+
+router.post("/likeTweet/:id", shouldBeAuthenticated, async function (req, res) {
+  const {id} = req.params;
+  if (id == null) {
+    res.status(400);
+    res.json({ msg: "error" });
+    return;
+  }
+
+  try {
+    const tweet = await Tweet.findById(id)
+    if (tweet == null) {
+      res.status(400);
+      res.json({msg:'tweet doesnt exist'});
+      return
+    }
+    
+    let likesIncrement = 1
+    let dislikesDecrement = 0
+
+    if (await Tweet.findUserThatDisliked(id, req.session.userId) != null) {
+      await Tweet.cancelTweetDislike(id, req.session.userId)
+      await Neo4jDB.removeRelationship(
+        { label: "User", uid: req.session.userId },
+        { label: "Tweet", uid: id },
+        "DISLIKED"
+      );
+      dislikesDecrement = 1
+    }
+    if (await Tweet.findUserThatLiked(id, req.session.userId) == null) {
+      await Tweet.likeTweet(id, req.session.userId)
+      await Neo4jDB.createRelationship(
+        { label: "User", uid: req.session.userId },
+        { label: "Tweet", uid: id },
+        "LIKED"
+      );
+    } else {
+      await Tweet.cancelTweetLike(id, req.session.userId)
+      await Neo4jDB.removeRelationship(
+        { label: "User", uid: req.session.userId },
+        { label: "Tweet", uid: id },
+        "LIKED"
+      );
+      likesIncrement = -1
+
+    }
+
+    res.status(200)
+    res.json({tweet, likesIncrement, dislikesDecrement});
+
+  } catch (e) {
+    console.log(e)
+    res.status(400);
+    res.json('error');
+  }
+
+});
+
+router.post("/dislikeTweet/:id", shouldBeAuthenticated, async function (req, res) {
+  const {id} = req.params;
+  if (id == null) {
+    res.status(400);
+    res.json({ msg: "error" });
+    return;
+  }
+
+  try {
+    const tweet = await Tweet.findById(id)
+    if (tweet == null) {
+      res.status(400);
+      res.json({msg:'tweet doesnt exist'});
+      return
+    }
+    
+    let dislikesIncrement = 1
+    let likesDecrement = 0
+    if (await Tweet.findUserThatLiked(id, req.session.userId) != null) {
+      await Tweet.cancelTweetLike(id, req.session.userId)
+      await Neo4jDB.removeRelationship(
+        { label: "User", uid: req.session.userId },
+        { label: "Tweet", uid: id },
+        "LIKED"
+      );
+      likesDecrement = 1
+    }
+    if (await Tweet.findUserThatDisliked(id, req.session.userId) == null) {
+      await Tweet.dislikeTweet(id, req.session.userId)
+      await Neo4jDB.createRelationship(
+        { label: "User", uid: req.session.userId },
+        { label: "Tweet", uid: id },
+        "DISLIKED"
+      );
+
+    } else {
+      await Tweet.cancelTweetDislike(id, req.session.userId)
+      await Neo4jDB.removeRelationship(
+        { label: "User", uid: req.session.userId },
+        { label: "Tweet", uid: id },
+        "DISLIKED"
+      );
+      dislikesIncrement = -1
+
+    }
+    res.status(200)
+    res.json({tweet, dislikesIncrement, likesDecrement});
+
   } catch (e) {
     console.log(e)
     res.status(400);

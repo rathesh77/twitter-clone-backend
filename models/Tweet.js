@@ -22,9 +22,10 @@ class Tweet {
       const postTweetQuery = `
                             CREATE (t:Tweet {
                               uid: $uid,
-                              content: $content,  
-                              likes: 0.0, 
-                              replies: 0.0, 
+                              content: $content,
+                              likes: 0.0,
+                              dislikes: 0.0,
+                              replies: 0.0,
                               shares: 0.0,
                               retweets: 0.0,
                               mentionnedPeople: $mentionnedPeople,
@@ -168,6 +169,22 @@ class Tweet {
     }
   }
 
+  static async cancelRetweet(id) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (t: Tweet {uid: $id}) SET t.retweets = t.retweets - 1 RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, {id});
+      await tx.commit();
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
   static async findUserThatRetweeted(id, userId) {
     const session = Neo4jDB.driver.session({ database: "neo4j" });
 
@@ -175,6 +192,102 @@ class Tweet {
       const tx = session.beginTransaction();
       const getTweetQuery = `MATCH (u :User {uid: $userId})-[:RETWEETED]->(t: Tweet {uid: $id}) RETURN u, t LIMIT 1`;
       const tweet = await tx.run(getTweetQuery, {id, userId});
+      await tx.commit();
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async findUserThatLiked(id, userId) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (u :User {uid: $userId})-[:LIKED]->(t: Tweet {uid: $id}) RETURN u, t LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, {id, userId});
+      await tx.commit();
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async findUserThatDisliked(id, userId) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (u :User {uid: $userId})-[:DISLIKED]->(t: Tweet {uid: $id}) RETURN u, t LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, {id, userId});
+      await tx.commit();
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async likeTweet(id) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (t: Tweet {uid: $id}) SET t.likes = t.likes + 1 RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, {id});
+      await tx.commit();
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async cancelTweetLike(id) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (t: Tweet {uid: $id}) SET t.likes = t.likes - 1 RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, {id});
+      await tx.commit();
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async dislikeTweet(id) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (t: Tweet {uid: $id}) SET t.dislikes = t.dislikes + 1 RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, {id});
+      await tx.commit();
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async cancelTweetDislike(id) {
+    const session = Neo4jDB.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (t: Tweet {uid: $id}) SET t.dislikes = t.dislikes - 1 RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, {id});
       await tx.commit();
       return tweet.records[0];
     } catch (error) {

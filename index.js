@@ -10,6 +10,8 @@ const userRoutes = require('./routes/user.routes')
 
 const initData = require('./initData')
 const Neo4jDB = require('./database/Neo4jDB');
+const fs = require('fs');
+
 require('./database/config')
 
 app.use(express.static('uploads'))

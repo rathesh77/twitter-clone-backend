@@ -32,6 +32,24 @@ class Neo4jDB {
     }
   }
 
+  async removeRelationship(leftNode, rightNode, relation) {
+    const session = this.driver.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const writeQuery = `
+          MATCH (a: ${leftNode.label} {uid: $leftId })-[r:${relation}]->(b:${rightNode.label} {uid: $rightId })
+          DELETE r
+          `;
+      await tx.run(writeQuery, { leftId: leftNode.uid, rightId: rightNode.uid })
+      await tx.commit();
+      console.log("relationship removed");
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+  }
   async flushDB() {
     const session = this.driver.session({ database: "neo4j" });
 
