@@ -19,7 +19,17 @@ let storage = multer.diskStorage({
 
 const upload = multer({ storage })
 
-router.post("/media", upload.single('file'), shouldBeAuthenticated, async function (req, res) {
+const fileLimit = (req, res, next) => {
+  const fileSize = parseInt(req.headers["content-length"]) / (10**6)
+  if (fileSize > 512.0) {
+    res.status(400)
+    res.json({msg: 'file size exceeded'})
+    return
+  }
+  next()
+}
+
+router.post("/media", fileLimit, upload.single('file'), shouldBeAuthenticated, async function (req, res) {
   res.status(200)
   res.json({...req.file})
 })
