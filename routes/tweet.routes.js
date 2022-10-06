@@ -167,7 +167,7 @@ router.get("/tweet/:id/messages", shouldBeAuthenticated, async function (req, re
       res.json({msg:'error'});
       return
     }
-    const messages = await Message.findByTweetId(id)
+    const messages = await Tweet.findInnerTweetsByTweetId(id)
 
 
     res.status(200);

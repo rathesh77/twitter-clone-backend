@@ -1,0 +1,4 @@
+CREATE TABLE userChat (idUser text, idChat text, foreign key(idChat) references chat(id));     
+CREATE TABLE message (id integer primary key autoincrement, content text, idUser text, foreign Key (idUser) references userChat(idUser));
+CREATE TABLE chatMessage (idChat text, idMessage text, foreign Key (idChat) references chat(id), foreign key (idMessage) references message(id));
+CREATE TABLE chat (id integer primary key autoincrement, author text);

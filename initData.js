@@ -7,17 +7,12 @@ async function initData(db) {
     try {
       await db.flushDB()
 
-      let user = { username: "user", email: "toto@toto.fr", password: 'toto', avatar: 'https://cdn.fansshare.com/photograph/victoriamoore/victoriamoore-113018010.jpg' };
+      let user = { username: "test", email: "test@", password: 'toto', avatar: 'https://i.imgflip.com/43j133.png', banner: 'https://previews.123rf.com/images/starlineart/starlineart1812/starlineart181200561/114211162-indian-flag-banner-with-geometric-pattern.jpg' };
       let tweet = {
         content: "tweet",
-        likes: 0,
-        replies: 1,
-        shares: 10,
         mentionnedPeople: ["a"],
       };
-      const message = {content: "message from tweet 1",     likes: 0,
-      replies: 0,
-      shares: 10,
+      const message = {content: "message from tweet 1",
       mentionnedPeople: ["a"], };
       const createdUser = await User.create(user)
       const userId = createdUser.get('uid')
@@ -48,21 +43,18 @@ async function initData(db) {
         { label: "Tweet", uid: messageId },
         "WROTE_TWEET"
       );
-      user = await User.create({email: 'titi@', username: 'titi', password: 'pwd', avatar: 'https://pbs.twimg.com/profile_images/1192991057/144621476_400x400.jpg'})
+      user = await User.create({email: 'jogabi@', username: 'jogabi', password: 'pwd', avatar: 'https://www.capri-sun.com/fr/wp-content/uploads/sites/11/2021/03/TP_Multivitamin_NA_CCEP_3D_Packshot_clean_Paper.png', banner: "https://www.capri-sun.com/fr/wp-content/uploads/sites/11/2021/07/221038_CS_Improved_Paperstraw_Banner_Sprachen_FR_1.png"})
       tweet = await Tweet.findLimit1('*')
-      await db.createRelationship(
-        { label: "User", uid: user.get('uid') },
-        { label: "Tweet", uid: tweet.get('uid') },
-        "RETWEETED"
-      );
-      tweet = await Tweet.create({authorId: user.get('uid'), content: 'testtweet', likes: 0, replies: 0, shares: 0, mentionnedPeople: [], date: '0'})
+
+      tweet = await Tweet.create({authorId: user.get('uid'), content: 'testtweet', mentionnedPeople: [], date: '0'})
       await db.createRelationship(
         { label: "User", uid: user.get('uid') },
         { label: "Tweet", uid: tweet.get('uid') },
         "WROTE_TWEET"
       );
     
-  
+      user = await User.create({email: 'user2@', username: 'user2', password: 'pwd', avatar: 'https://pbs.twimg.com/profile_images/1192991057/144621476_400x400.jpg', banner: 'https://steamuserimages-a.akamaihd.net/ugc/1613797962877782991/99A32B4CA5FA378E7152B2A3449AA479B4705E38/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%2523000000&letterbox=false'})
+
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {

@@ -26,6 +26,8 @@ router.post("/login", shouldNotBeAuthenticated, async function (req, res) {
       return
     }
     const currentUserNode = currentUser.get('u').properties
+    delete currentUserNode.password
+
     req.session.userId = currentUserNode.uid
     res.status(200)
     res.json(currentUserNode)
