@@ -72,10 +72,11 @@ dotenv.config();
 
     socket.on('get_chats', (data)=> {
       console.log('data:', data)
-      Chat.create(data)
+      //Chat.create(data)
     })
 
     socket.on('create_chat', (data)=> {
+      Chat.create(data)
     })
 
   });

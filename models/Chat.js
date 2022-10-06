@@ -9,15 +9,18 @@ const db = SQLiteDB.db
     static async create(data) {
 
         //const uid = uuidv4()
-        const {uid} = data.user
-        const recipient = data.recipient
+        const authorId = data.author.uid
+        const recipients = data.recipients
         try {
             db.serialize(() => {
-                db.run("INSERT INTO chat (author) VALUES (?)", [uid], function(err) {
+                db.run("INSERT INTO chat (author) VALUES (?)", [authorId], function(err) {
                     const lastId = this.lastID
                     if (!err) {
-                        db.run("INSERT INTO UserChat (idChat, idUser) VALUES (?, ?)", [lastId, uid])
-                        //db.run("INSERT INTO UserChat (idChat, idUser) VALUES (?)", [lastId, recipient.uid])
+                        db.run("INSERT INTO UserChat (idChat, idUser) VALUES (?, ?)", [lastId, authorId])
+                        for (const recipient of recipients) {
+                            const recipientId = recipient.uid
+                            db.run("INSERT INTO UserChat (idChat, idUser) VALUES (?, ?)", [lastId, recipientId])
+                        }
 
                     } else {
                         console.log('error')

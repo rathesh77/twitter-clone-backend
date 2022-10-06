@@ -1,4 +1,14 @@
-CREATE TABLE userChat (idUser text, idChat text, foreign key(idChat) references chat(id));     
-CREATE TABLE message (id integer primary key autoincrement, content text, idUser text, foreign Key (idUser) references userChat(idUser));
-CREATE TABLE chatMessage (idChat text, idMessage text, foreign Key (idChat) references chat(id), foreign key (idMessage) references message(id));
-CREATE TABLE chat (id integer primary key autoincrement, author text);
+CREATE TABLE userChat (idUser TEXT, idChat TEXT, FOREIGN KEY(idChat) REFERENCES chat(id));     
+CREATE TABLE message (id INTEGER primary KEY AUTOINCREMENT, content TEXT, idUser TEXT, FOREIGN KEY (idUser) REFERENCES userChat(idUser));
+CREATE TABLE chatMessage (idChat TEXT, idMessage TEXT, FOREIGN KEY (idChat) REFERENCES chat(id), FOREIGN KEY (idMessage) REFERENCES message(id));
+CREATE TABLE chat (id INTEGER primary KEY AUTOINCREMENT, author TEXT);
+
+DELETE FROM chat; 
+DELETE FROM userchat; 
+DELETE FROM chatmessage; 
+DELETE FROM message;  
+
+DELETE FROM sqlite_sequence WHERE name='chat'; 
+DELETE FROM sqlite_sequence WHERE name='userchat'; 
+DELETE FROM sqlite_sequence WHERE name='chatmessage'; 
+DELETE FROM sqlite_sequence WHERE name='message';  
