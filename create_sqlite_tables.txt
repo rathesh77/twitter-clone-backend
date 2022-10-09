@@ -1,7 +1,8 @@
 CREATE TABLE userChat (idUser TEXT, idChat TEXT, FOREIGN KEY(idChat) REFERENCES chat(id));     
-CREATE TABLE message (id INTEGER primary KEY AUTOINCREMENT, content TEXT, idUser TEXT, FOREIGN KEY (idUser) REFERENCES userChat(idUser));
-CREATE TABLE chatMessage (idChat TEXT, idMessage TEXT, FOREIGN KEY (idChat) REFERENCES chat(id), FOREIGN KEY (idMessage) REFERENCES message(id));
+CREATE TABLE message (id INTEGER primary KEY AUTOINCREMENT, content TEXT, idUser TEXT, idChat TEXT, date INTEGER, FOREIGN KEY (idUser) REFERENCES userChat(idUser), FOREIGN KEY(idChat) REFERENCES chat(id)); 
 CREATE TABLE chat (id INTEGER primary KEY AUTOINCREMENT, author TEXT);
+
+CREATE TABLE chatMessage (idChat TEXT, idMessage TEXT, FOREIGN KEY (idChat) REFERENCES chat(id), FOREIGN KEY (idMessage) REFERENCES message(id));
 
 DELETE FROM chat; 
 DELETE FROM userchat; 

@@ -45,7 +45,6 @@ const wrap = middleware => (socket, next) => middleware(socket.request, {}, next
 io.use(wrap(sessionMiddleware));
 io.use((socket, next) => {
   const session = socket.request.session;
-  console.log(session)
   if (session && session.userId) {
     next();
   } else {
@@ -55,12 +54,12 @@ io.use((socket, next) => {
 
 dotenv.config();
 
-(async ()=>{
+(async () => {
 
   Neo4jDB.connect()
   if (process.argv.includes('initData')) {
-    fs.readdir('uploads', function(err, files){
-      files.forEach(f => fs.rmSync('uploads/'+f))
+    fs.readdir('uploads', function (err, files) {
+      files.forEach(f => fs.rmSync('uploads/' + f))
     })
     initData(Neo4jDB)
   }
@@ -70,28 +69,56 @@ dotenv.config();
     console.log('a user connected');
     socket.emit('message')
 
-    socket.on('get_chats', (data)=> {
-      console.log('data:', data)
+    socket.on('get_chats', async (data) => {
       //Chat.create(data)
+      socket.join(socket.request.session.userId)
+      const chats = await Chat.getChatsAndMessagesRelatedToUser(data.uid)
+      const seen = {}
+      for (const chat of chats) {
+        const { chatId } = chat
+        if (!seen[chatId]) {
+          seen[chatId] = true
+          if (!socket.rooms.has(`chat/${chatId}`))
+            socket.join(`chat/${chatId}`)
+        }
+      }
+      socket.emit('chats_list', chats)
     })
 
-    socket.on('create_chat', (data)=> {
-      Chat.create(data)
+    socket.on('create_chat', async (data) => {
+      const author = data.author
+      const createdChat = await Chat.create(data)
+      socket.emit('chat_created', createdChat)
+      for (const recipient of data.recipients) {
+        let cloneRecipients = [...data.recipients]
+        cloneRecipients = cloneRecipients.filter((r) => r.uid != recipient.uid)
+        cloneRecipients.push(author)
+        socket.to(recipient.uid).emit('user_invited_you', { ...data, ...createdChat, recipients: cloneRecipients })
+      }
+    })
+
+    socket.on('join', async (chatId) => {
+      socket.join(`chat/${chatId}`)
+    })
+
+    socket.on('post_message', async (message) => {
+      console.log(socket.request.session)
+      const createdMessageId = await Chat.createMessage({ authorId: message.author, content: message.content, chatId: message.chatId })
+      socket.emit('posted_message', createdMessageId)
+      socket.to(`chat/${message.chatId}`).emit('user_posted_message', { ...message, messageId: createdMessageId, date: Date.now() })
     })
 
   });
 
 
-
-  
   server.listen(8080, null, function () {
     console.log("app is listening on port 8080");
   });
-  
-  server.on('close',(async (err) => {
+
+  server.on('close', (async (err) => {
     db.close();
     console.log("server closed");
     await Neo4jDB.close();
     process.exit(err ? 1 : 0);
   }));
-}) ()
+})()
