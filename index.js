@@ -108,6 +108,11 @@ dotenv.config();
       socket.to(`chat/${message.chatId}`).emit('user_posted_message', { ...message, messageId: createdMessageId, date: Date.now() })
     })
 
+    socket.on('writing', async ({user, chatId}) => {
+      console.log(user, chatId)
+      socket.to(`chat/${chatId}`).emit('user_writing', {user, chatId})
+    })
+
   });
 
 
