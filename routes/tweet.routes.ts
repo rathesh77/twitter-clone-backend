@@ -1,17 +1,19 @@
-const router = require('express').Router()
-const User = require('../models/User')
-const Tweet = require('../models/Tweet')
+import * as express  from 'express'
+import UserDao  from '../models/dao/user.dao'
+import TweetDao  from '../models/dao/tweet.dao'
 
-const Neo4jDB = require('../database/Neo4jDB');
-const Message = require('../models/Message');
-const shouldBeAuthenticated = require('../middlewares/shouldBeAuthenticated')
-const multer = require('multer')
+import Neo4jDB  from '../database/neo4j.database'
+import MessageDao  from '../models/dao/message.dao'
+import shouldBeAuthenticated  from '../middlewares/shouldBeAuthenticated'
+import multer  from 'multer'
+
+const router = express.Router()
 
 let storage = multer.diskStorage({
-    destination: (req, file, cb) => {
+    destination: (_, __, cb) => {
         cb(null, './uploads');
     },
-    filename: (req, file, cb) => {
+    filename: (_, file, cb) => {
         const fileName = file.originalname.toLowerCase().split(' ').join('-');
         cb(null, fileName)
     },
@@ -19,8 +21,8 @@ let storage = multer.diskStorage({
 
 const upload = multer({ storage })
 
-const fileLimit = (req, res, next) => {
-  const fileSize = parseInt(req.headers["content-length"]) / (10**6)
+const fileLimit = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const fileSize = parseInt(req.headers["content-length"]!) / (10**6)
   if (fileSize > 512.0) {
     res.status(400)
     res.json({msg: 'file size exceeded'})
@@ -220,8 +222,8 @@ router.post("/retweet/:id", shouldBeAuthenticated, async function (req, res) {
       return
     }
     
-    const didUserAlreadyRetweet = await Tweet.findUserThatRetweeted(id, req.session.userId)
-    if (didUserAlreadyRetweet != null) {
+    const duserIdAlreadyRetweet = await Tweet.findUserThatRetweeted(id, req.session.userId)
+    if (duserIdAlreadyRetweet != null) {
 
       await Tweet.cancelRetweet(id)
       await Neo4jDB.removeRelationship(
@@ -363,4 +365,4 @@ router.post("/dislikeTweet/:id", shouldBeAuthenticated, async function (req, res
   }
 
 });
-module.exports = router
+export default router

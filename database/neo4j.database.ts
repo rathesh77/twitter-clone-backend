@@ -1,19 +1,51 @@
-const neo4j = require("neo4j-driver");
-const config = require('./config')
+import neo4j, { Driver } from "neo4j-driver"
+import config from './config'
+
+type Node = { 
+  label: string, 
+  uid: string 
+}
+
+type Relationship = { 
+  leftNode: Node,
+  rightNode: Node, 
+  relation: string 
+}
+
+// Singleton
 class Neo4jDB {
-  constructor() {
-    const {uri, user, password} = config
-    this.uri = uri
-    this.user = user
-    this.password = password
-    this.driver = null
+  private uri: string;
+  private user: string;
+  private password: string;
+  public driver: Driver | null;
+  private static isInitialized: boolean = false;
+
+  private constructor() {
+    this.uri = config.uri!
+    this.user = config.user!
+    this.password = config.password!
+    this.driver = null;
+    
+    console.log(config)
   }
 
-  connect() {
-    this.driver = neo4j.driver(this.uri, neo4j.auth.basic(this.user, this.password));    
+  public static __construct() {
+    if (Neo4jDB.isInitialized || !config || !config.uri || !config.user || !config.password) {
+      return null
+    }
+    Neo4jDB.isInitialized = true
+    return new Neo4jDB()
   }
 
-  async createRelationship(leftNode, rightNode, relation) {
+  public connect() {
+    this.driver = neo4j.driver(this.uri, neo4j.auth.basic(this.user, this.password));
+  }
+
+  public async createRelationship(relationship: Relationship) {
+    if (!this.driver) {
+      return null
+    }
+    const {leftNode, rightNode, relation} = relationship
     const session = this.driver.session({ database: "neo4j" });
 
     try {
@@ -32,8 +64,12 @@ class Neo4jDB {
     }
   }
 
-  async removeRelationship(leftNode, rightNode, relation) {
+  async removeRelationship(relationship: Relationship) {
+    if (!this.driver) {
+      return null
+    }
     const session = this.driver.session({ database: "neo4j" });
+    const {leftNode, rightNode, relation} = relationship
 
     try {
       const tx = session.beginTransaction();
@@ -51,6 +87,9 @@ class Neo4jDB {
     }
   }
   async flushDB() {
+    if (!this.driver) {
+      return null
+    }
     const session = this.driver.session({ database: "neo4j" });
 
     try {
@@ -65,10 +104,11 @@ class Neo4jDB {
       await session.close();
     }
   }
-  
+
   async close() {
-    await this.driver.close();
+    if (this.driver)
+      await this.driver.close();
   }
 }
 
-module.exports = new Neo4jDB()
+export default Neo4jDB.__construct()

@@ -1,6 +1,5 @@
-const User = require('./models/User')
-const Message = require('./models/Message')
-const Tweet = require('./models/Tweet')
+import User  from './models/User'
+import Tweet from './models/Tweet'
 
 async function initData(db) {
 
@@ -63,4 +62,4 @@ async function initData(db) {
     }
 }
 
-module.exports = initData
+export default initData

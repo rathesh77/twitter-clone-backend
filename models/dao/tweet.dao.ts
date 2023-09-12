@@ -1,16 +1,13 @@
-const {
-  v4: uuidv4,
-} = require('uuid');
+import uuidv4 from 'uuid';
+import Neo4jDB from '../../database/neo4j.database'
 
-const Neo4jDB = require('../database/Neo4jDB')
-
-class Tweet {
+class TweetDao {
 
   static async create(tweet) {
     const session = Neo4jDB.driver.session({ database: "neo4j" });
 
     try {
-      const uid = uuidv4()
+      const uid = uuidv4.v4()
       const tx = session.beginTransaction();
       let { authorId } = tweet;
       const getAuthorQuery = `MATCH (u: User) WHERE u.uid = $authorId RETURN u LIMIT 1`;
@@ -315,4 +312,4 @@ class Tweet {
   }
 }
 
-module.exports = Tweet
+export default TweetDao

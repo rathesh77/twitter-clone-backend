@@ -1,17 +1,25 @@
-const dotenv = require("dotenv");
-const cors = require("cors");
-const express = require("express");
-const session = require('express-session');
-const bodyParser = require("body-parser");
-const { Server } = require("socket.io");
-const fs = require('fs');
+import dotenv from "dotenv";
+import cors  from "cors";
+import session  from 'express-session'
+import bodyParser  from "body-parser"
+import { Server } from "socket.io";
+import fs from 'fs'
+import express from 'express'
 
-const Neo4jDB = require('./database/Neo4jDB');
-const tweetRoutes = require('./routes/tweet.routes')
-const userRoutes = require('./routes/user.routes')
+import Neo4jDB  from './database/neo4j.database'
+import tweetRoutes from './routes/tweet.routes'
+import userRoutes  from './routes/user.routes'
 
-const initData = require('./initData');
-const Chat = require("./models/Chat");
+import initData from './initData';
+import Chat from "./models/dao/chat.dao";
+import ChatDao from "./models/dao/chat.dao";
+import ChatSqlite from "./implementation/sqlite/chat.sqlite";
+import UserchatSqlite from "./implementation/sqlite/userChat.sqlite";
+import UserChatDao from "./models/dao/userChat.dao";
+
+const chatDao = new ChatDao(new ChatSqlite())
+const userChatDao = new UserChatDao(new UserchatSqlite())
+
 const app = express();
 const sessionMiddleware = session({
   secret: 'toto',
@@ -22,7 +30,6 @@ const sessionMiddleware = session({
   }
 });
 
-require('./database/config')
 
 app.use(express.static('uploads'))
 app.use(bodyParser.json());
@@ -34,14 +41,14 @@ app.use(sessionMiddleware)
 app.use('/', userRoutes)
 app.use('/', tweetRoutes)
 
-const server = require('http').createServer(app);
+const server = require ('http').createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
     credentials: true
   }
 });
-const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
+const wrap = (middleware: any) => middleware(socket.request, {}, next);
 io.use(wrap(sessionMiddleware));
 io.use((socket, next) => {
   const session = socket.request.session;
@@ -56,7 +63,7 @@ dotenv.config();
 
 (async () => {
 
-  Neo4jDB.connect()
+  Neo4jDB!.connect()
   if (process.argv.includes('initData')) {
     fs.readdir('uploads', function (err, files) {
       files.forEach(f => fs.rmSync('uploads/' + f))
@@ -72,10 +79,11 @@ dotenv.config();
     socket.on('get_chats', async (data) => {
       //Chat.create(data)
       socket.join(socket.request.session.userId)
-      const chats = await Chat.getChatsAndMessagesRelatedToUser(data.uid)
-      const seen = {}
-      for (const chat of chats) {
-        const { chatId } = chat
+      const chats = await chatDao.getChatsAndMessagesRelatedToUser(data.uid)
+      const seen: any = {}
+      for (const _chat of chats) {
+        const { chat } = _chat
+        const chatId = chat.id
         if (!seen[chatId]) {
           seen[chatId] = true
           if (!socket.rooms.has(`chat/${chatId}`))
@@ -86,13 +94,13 @@ dotenv.config();
     })
 
     socket.on('create_chat', async (data) => {
-      const author = data.author
-      const createdChat = await Chat.create(data)
+      const authorId = data.authorId
+      const createdChat = await chatDao.create(data)
       socket.emit('chat_created', createdChat)
       for (const recipient of data.recipients) {
         let cloneRecipients = [...data.recipients]
         cloneRecipients = cloneRecipients.filter((r) => r.uid != recipient.uid)
-        cloneRecipients.push(author)
+        cloneRecipients.push(authorId)
         socket.to(recipient.uid).emit('user_invited_you', { ...data, ...createdChat, recipients: cloneRecipients })
       }
     })

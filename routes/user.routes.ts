@@ -1,11 +1,13 @@
+import { Request, Response } from "express";
+
 const router = require('express').Router()
 const User = require('../models/User')
-const Neo4jDB = require('../database/Neo4jDB');
+const Neo4jDB = require('../database/neo4j.database');
 const shouldNotBeAuthenticated = require('../middlewares/shouldNotBeAuthenticated')
 const shouldBeAuthenticated = require('../middlewares/shouldBeAuthenticated')
 const { doesUserFollowRecipient } = require('../models/User')
 
-router.post("/login", shouldNotBeAuthenticated, async function (req, res) {
+router.post("/login", shouldNotBeAuthenticated, async function (req: Request, res: Response) {
   const requestData = req.body
   if (
     requestData == null ||
@@ -38,7 +40,7 @@ router.post("/login", shouldNotBeAuthenticated, async function (req, res) {
 
 })
 
-router.get("/me", shouldBeAuthenticated, async function (req, res) {
+router.get("/me", shouldBeAuthenticated, async function (req: Request, res: Response) {
   try {
     const currentUser = await User.findByUserId(req.session.userId)
     if (!currentUser) {
@@ -57,7 +59,7 @@ router.get("/me", shouldBeAuthenticated, async function (req, res) {
 
 })
 
-router.get("/search", shouldBeAuthenticated, async function (req, res) {
+router.get("/search", shouldBeAuthenticated, async function (req: Request, res: Response) {
   try {
     const {value} = req.query
     if (!value) {
@@ -81,7 +83,7 @@ router.get("/search", shouldBeAuthenticated, async function (req, res) {
 
 })
 
-router.get("/user", shouldBeAuthenticated, async function (req, res) {
+router.get("/user", shouldBeAuthenticated, async function (req: Request, res: Response) {
   try {
     const {id} = req.query
     if (!id) {
@@ -106,7 +108,7 @@ router.get("/user", shouldBeAuthenticated, async function (req, res) {
   }
 
 })
-router.post("/register", shouldNotBeAuthenticated, async function (req, res) {
+router.post("/register", shouldNotBeAuthenticated, async function (req: Request, res: Response) {
   const requestData = req.body
   if (
     requestData == null ||
@@ -139,7 +141,7 @@ router.post("/register", shouldNotBeAuthenticated, async function (req, res) {
 
 })
 
-router.put("/follow/:userId", shouldBeAuthenticated, async function (req, res) {
+router.put("/follow/:userId", shouldBeAuthenticated, async function (req: Request, res: Response) {
   const {userId} = req.params
   if (!userId) {
     res.status(400)
@@ -163,7 +165,7 @@ router.put("/follow/:userId", shouldBeAuthenticated, async function (req, res) {
   res.json({ msg: 'success' })
 })
 
-router.get("/follow/:userId", shouldBeAuthenticated, async function (req, res) {
+router.get("/follow/:userId", shouldBeAuthenticated, async function (req: Request, res: Response) {
   const {userId} = req.params
   if (!userId) {
     res.status(400)
@@ -183,14 +185,14 @@ router.get("/follow/:userId", shouldBeAuthenticated, async function (req, res) {
   res.json(false)
 })
 
-router.get("/suggestions", shouldBeAuthenticated, async function (req, res) {
+router.get("/suggestions", shouldBeAuthenticated, async function (req: Request, res: Response) {
 
   const suggestions = await User.getSuggestionsForUser(req.session.userId)
   res.status(200)
   res.json(suggestions)
 })
 
-router.get("/followers", shouldBeAuthenticated, async function (req, res) {
+router.get("/followers", shouldBeAuthenticated, async function (req: Request, res: Response) {
 
   const {id} = req.query
   if (!id) {
@@ -205,7 +207,7 @@ router.get("/followers", shouldBeAuthenticated, async function (req, res) {
   res.json({count})
 })
 
-router.get("/followings", shouldBeAuthenticated, async function (req, res) {
+router.get("/followings", shouldBeAuthenticated, async function (req: Request, res: Response) {
 
   const {id} = req.query
   if (!id) {
@@ -221,11 +223,11 @@ router.get("/followings", shouldBeAuthenticated, async function (req, res) {
 })
 
 
-router.delete("/logout", shouldBeAuthenticated, async function (req, res) {
+router.delete("/logout", shouldBeAuthenticated, async function (req: Request, res: Response) {
   req.session.userId = null
   res.status(200)
   res.json({ msg: 'logged out successfully' })
 })
 
 
-module.exports = router
+export default router

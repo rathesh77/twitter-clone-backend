@@ -1,17 +1,16 @@
-const {
-  v4: uuidv4,
-} = require('uuid');
+import uuidv4 from 'uuid';
+import bcrypt from 'bcrypt';
+import neo4jDatabase from '../../database/neo4j.database';
+import UserInterface from '../../interface/user.interface';
+const saltRounds = 10
 
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
+class UserNeo4j implements UserInterface{
 
-const Neo4jDB = require('../database/Neo4jDB')
-
-class User {
-
-  static async create(user) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
-    const uid = uuidv4()
+  
+  async create(user: UserDto) {
+    
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const uid = uuidv4.v4()
     const hashedPassword = await bcrypt.hash(user.password, saltRounds)
     try {
       const writeQuery = `CREATE (u:User {
@@ -25,11 +24,11 @@ class User {
                               RETURN u, u.uid AS uid
                             `;
 
-      const writeResult = await session.writeTransaction((tx) =>
+      const writeResult:any = await session.writeTransaction((tx) =>
         tx.run(writeQuery, { ...user, hashedPassword, uid })
       );
 
-      writeResult.records.forEach((record) => {
+      writeResult.records.forEach((record:any) => {
         const user = record.get("uid");
         console.info(`Created user: ${JSON.stringify(user)}`);
       });
@@ -41,9 +40,9 @@ class User {
       await session.close();
     }
   }
-
-  static async findByUserId(userId) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
+  
+  async findByUserId(userId: number): Promise<UserDto | null> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
       const tx = session.beginTransaction();
@@ -61,10 +60,11 @@ class User {
     } finally {
       await session.close();
     }
-  }
+    return null;
 
-  static async findByEmailAndPassword({ email, password }) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
+  }
+  async findByEmailAndPassword(email: string, password: string): Promise<any> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const getUserQuery = `MATCH (u: User {email: $email}) RETURN u`;
@@ -83,8 +83,8 @@ class User {
       await session.close();
     }
   }
-  static async findByEmail(email) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
+  async findByEmail(email: string): Promise<any> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const getUserQuery = `MATCH (u: User {email: $email}) RETURN u`;
@@ -102,9 +102,8 @@ class User {
       await session.close();
     }
   }
-
-  static async findAuthoredTweet(tweetId) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
+  async findAuthoredTweet(tweetId: number): Promise<any> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const getUserWhoAuthoredTweet = `MATCH (u: User)-[:WROTE_TWEET]->(t: Tweet {uid: $tweetId}) RETURN u`;
@@ -120,9 +119,8 @@ class User {
       await session.close();
     }
   }
-
-  static async findResults(search) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
+  async findResults(search: string): Promise<any[] | null> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const getResultsQuery = `MATCH (u: User) where u.username =~ '(?i)'+$search+'.*' return u`;
@@ -135,10 +133,10 @@ class User {
     } finally {
       await session.close();
     }
+    return null
   }
-
-  static async doesUserFollowRecipient(userId, recipientId) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
+  async doesUserFollowRecipient(userId: number, recipientId: number): Promise<boolean | any | null> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const query = `MATCH (u: User {uid: $userId})-[:KNOWS]->(r: User {uid: $recipientId}) RETURN u, r LIMIT 1`;
@@ -153,10 +151,10 @@ class User {
     } finally {
       await session.close();
     }
+    return null
   }
-
-  static async getSuggestionsForUser(userId) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
+  async getSuggestionsForUser(userId: number): Promise<UserDto[] | null> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const query = `
@@ -174,11 +172,10 @@ class User {
     } finally {
       await session.close();
     }
+    return null
   }
-
-  
-  static async getFollowers(userId) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
+  async getFollowers(userId: number): Promise<UserDto[] | null> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const query = `
@@ -194,10 +191,10 @@ class User {
     } finally {
       await session.close();
     }
+    return null
   }
-
-  static async getFollowings(userId) {
-    const session = Neo4jDB.driver.session({ database: "neo4j" });
+  async getFollowings(userId: number): Promise<UserDto[] | null> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const query = `
@@ -213,7 +210,8 @@ class User {
     } finally {
       await session.close();
     }
+    return null
   }
 }
 
-module.exports = User
+export default UserNeo4j

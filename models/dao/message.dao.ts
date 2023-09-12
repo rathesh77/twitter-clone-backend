@@ -1,0 +1,17 @@
+import MessageInterface from "../../interface/message.interface";
+
+class MessageDao implements MessageInterface {
+
+  implementation: MessageInterface
+
+  constructor(implementation: MessageInterface) {
+    this.implementation = implementation
+  }
+
+ async create(message: MessageDto) {
+    return await this.implementation.create(message)
+  }
+
+}
+
+export default MessageDao
