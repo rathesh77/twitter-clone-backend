@@ -112,3 +112,4 @@ class Neo4jDB {
 }
 
 export default Neo4jDB.__construct()
+export type { Relationship }

@@ -1,16 +1,16 @@
 type ChatMessage = {
-  chat: ChatDto, 
-  message: MessageDto
+  chatId: number, 
+  messageId: number
 }
 
 class ChatMessageDto {
 
-  chat;
-  message;
+  chatId;
+  messageId;
 
   constructor(data: ChatMessage) {
-    this.chat = data.chat
-    this.message = data.message
+    this.chatId = data.chatId
+    this.messageId = data.messageId
   }
 
 }

@@ -5,20 +5,21 @@ import bodyParser  from "body-parser"
 import { Server } from "socket.io";
 import fs from 'fs'
 import express from 'express'
-
+import http from 'http'
 import Neo4jDB  from './database/neo4j.database'
 import tweetRoutes from './routes/tweet.routes'
 import userRoutes  from './routes/user.routes'
 
 import initData from './initData';
-import Chat from "./models/dao/chat.dao";
 import ChatDao from "./models/dao/chat.dao";
 import ChatSqlite from "./implementation/sqlite/chat.sqlite";
-import UserchatSqlite from "./implementation/sqlite/userChat.sqlite";
-import UserChatDao from "./models/dao/userChat.dao";
-
+import neo4jDatabase from "./database/neo4j.database";
+declare module 'express-session' {
+  export interface SessionData {
+    userId: string;
+  }
+}
 const chatDao = new ChatDao(new ChatSqlite())
-const userChatDao = new UserChatDao(new UserchatSqlite())
 
 const app = express();
 const sessionMiddleware = session({
@@ -41,7 +42,7 @@ app.use(sessionMiddleware)
 app.use('/', userRoutes)
 app.use('/', tweetRoutes)
 
-const server = require ('http').createServer(app);
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -82,8 +83,7 @@ dotenv.config();
       const chats = await chatDao.getChatsAndMessagesRelatedToUser(data.uid)
       const seen: any = {}
       for (const _chat of chats) {
-        const { chat } = _chat
-        const chatId = chat.id
+        const { chatId } = _chat
         if (!seen[chatId]) {
           seen[chatId] = true
           if (!socket.rooms.has(`chat/${chatId}`))
@@ -111,7 +111,7 @@ dotenv.config();
 
     socket.on('post_message', async (message) => {
       console.log(socket.request.session)
-      const createdMessageId = await Chat.createMessage({ authorId: message.author, content: message.content, chatId: message.chatId })
+      const createdMessageId = await chatDao.create({id: undefined, recipients: [], authorId: 1})
       socket.emit('posted_message', createdMessageId)
       socket.to(`chat/${message.chatId}`).emit('user_posted_message', { ...message, messageId: createdMessageId, date: Date.now() })
     })
@@ -124,14 +124,14 @@ dotenv.config();
   });
 
 
-  server.listen(8080, null, function () {
+  server.listen(8080, function () {
     console.log("app is listening on port 8080");
   });
 
-  server.on('close', (async (err) => {
-    db.close();
+  server.on('close', (async (err: any) => {
+    neo4jDatabase?.close();
     console.log("server closed");
-    await Neo4jDB.close();
+    await neo4jDatabase!.close();
     process.exit(err ? 1 : 0);
   }));
 })()

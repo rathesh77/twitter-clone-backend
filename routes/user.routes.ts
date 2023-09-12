@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import session from 'express-session';
 
 const router = require('express').Router()
 const User = require('../models/User')
@@ -224,7 +225,7 @@ router.get("/followings", shouldBeAuthenticated, async function (req: Request, r
 
 
 router.delete("/logout", shouldBeAuthenticated, async function (req: Request, res: Response) {
-  req.session.userId = null
+  delete req.session.userId
   res.status(200)
   res.json({ msg: 'logged out successfully' })
 })

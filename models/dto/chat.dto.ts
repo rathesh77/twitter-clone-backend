@@ -2,7 +2,7 @@ type Recipient = {
   uid: string
 }
 type Chat = {
-  id: number, 
+  id?: number, 
   authorId: number,
   recipients?: Recipient[]
 }

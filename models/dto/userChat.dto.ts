@@ -1,16 +1,16 @@
 type UserChat = {
-  //id: number,
+  id?: number,
   userId: number, 
   chatId: number
 }
 
 class UserChatDto {
-  //id;
+  id;
   userId;
   chatId;
 
   constructor(data: UserChat) {
-    //this.id = data.id
+    this.id = data.id
     this.userId = data.userId
     this.chatId = data.chatId
   }

@@ -1,5 +1,5 @@
 type Message = {
-  id: number,
+  id?: number,
   content: string,
   userId: number,
   chatId: number,

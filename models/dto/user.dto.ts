@@ -1,4 +1,5 @@
 type User = {
+  id?: number,
   username: string,
   email: string,
   password: string,
@@ -7,7 +8,7 @@ type User = {
 }
 
 class UserDto {
-
+  id;
   username;
   email;
   password;
@@ -15,6 +16,8 @@ class UserDto {
   avatar: string
   
   constructor(data: User) {
+    this.id = data.id
+
     this.username = data.username
     this.email = data.email
     this.password = data.password
