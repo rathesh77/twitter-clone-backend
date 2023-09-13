@@ -2,9 +2,10 @@ import { uuid } from 'uuidv4';
 
 import neo4jDatabase from "../../database/neo4j.database";
 import TweetInterface from "../../interface/tweet.interface";
+import TweetDto from '../../models/dto/tweet.dto';
 
 class TweetNeo4j implements TweetInterface {
-  async create(tweet: TweetDto): Promise<any> {
+  async create(tweet: TweetDto): Promise<TweetDto | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -14,6 +15,9 @@ class TweetNeo4j implements TweetInterface {
       const getAuthorQuery = `MATCH (u: User) WHERE u.uid = $userId RETURN u LIMIT 1`;
       const author = await tx.run(getAuthorQuery, { userId });
 
+      if (!tweet.mentionnedPeople) {
+        tweet.mentionnedPeople = []
+      }
       if (author.records.length === 0) {
         throw 'l\'auteur n\'existe pas'
       }
@@ -39,12 +43,13 @@ class TweetNeo4j implements TweetInterface {
                                       `
       const mergeAuthorAndTweet = await tx.run(mergeAuthorAndTweetQuery, { userId, uid });
       await tx.commit();
-      return mergeAuthorAndTweet.records[0];
+      return mergeAuthorAndTweet.records[0].get('t').properties;
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
     }
+    return null;
   }
   async findAllTweetsUserInteractedWith(userId: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
@@ -68,7 +73,7 @@ class TweetNeo4j implements TweetInterface {
     }
   }
 
-  async findAllRelatedTweetsToUser(userId: string): Promise<any> {
+  async findAllRelatedTweetsToUser(userId: string): Promise<TweetDto[] | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -87,12 +92,24 @@ class TweetNeo4j implements TweetInterface {
 
       await tx.commit();
 
-      return tweets.records;
+      console.log(tweets.records)
+      return tweets.records.filter((t) => t.get('t') != null).map((t:any) => {
+      console.log(t.get('type(ut)'))
+      return (
+          {
+            tweet: t.get('t').properties,
+            user: t.get('u').properties,
+            type: t.get('type(ut)')
+          }
+        )}
+      ) as unknown as TweetDto[];
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
     }
+    return null
+
   }
   async findById(id: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });

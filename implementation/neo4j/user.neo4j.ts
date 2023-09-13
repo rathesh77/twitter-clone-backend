@@ -2,6 +2,7 @@ import { uuid } from 'uuidv4';
 import bcrypt from 'bcrypt';
 import neo4jDatabase from '../../database/neo4j.database';
 import UserInterface from '../../interface/user.interface';
+import UserDto from '../../models/dto/user.dto';
 const saltRounds = 10
 
 class UserNeo4j implements UserInterface{
@@ -11,7 +12,7 @@ class UserNeo4j implements UserInterface{
     
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     const uid = uuid()
-    const hashedPassword = await bcrypt.hash(user.password, saltRounds)
+    const hashedPassword = await bcrypt.hash(user.password!, saltRounds)
     try {
       const writeQuery = `CREATE (u:User {
                                 username: $username, 
@@ -33,7 +34,7 @@ class UserNeo4j implements UserInterface{
         console.info(`Created user: ${JSON.stringify(user)}`);
       });
       delete writeResult.records[0].password
-      return writeResult.records[0];
+      return writeResult.records[0].get('u').properties;
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -41,7 +42,7 @@ class UserNeo4j implements UserInterface{
     }
   }
   
-  async findByUserId(userId: string): Promise<any> {
+  async findByUserId(userId: string): Promise<UserDto | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -54,7 +55,7 @@ class UserNeo4j implements UserInterface{
 
       await tx.commit();
 
-      return author.records[0];
+      return author.records[0].get('u').properties as UserDto;
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -63,25 +64,26 @@ class UserNeo4j implements UserInterface{
     return null;
 
   }
-  async findByEmailAndPassword(email: string, password: string): Promise<any> {
+  async findByEmailAndPassword(email: string, password: string): Promise<UserDto | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const getUserQuery = `MATCH (u: User {email: $email}) RETURN u`;
       let user: any = await tx.run(getUserQuery, { email });
       if (user.records.length === 0)
-        return false
+        return null
       user = user.records[0]
       if (!await bcrypt.compare(password, user._fields[0].properties.password)) {
-        return false
+        return null
       }
       await tx.commit();
-      return user;
+      return user.get('u').properties;
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
     }
+    return null;
   }
   async findByEmail(email: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });

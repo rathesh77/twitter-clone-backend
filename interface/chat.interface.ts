@@ -1,4 +1,5 @@
 import { RunResult } from "sqlite3";
+import ChatDto from "../models/dto/chat.dto";
 
 export default interface ChatInterface {
 

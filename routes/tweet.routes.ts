@@ -57,9 +57,19 @@ router.post("/tweet", shouldBeAuthenticated, async function (req, res) {
   };
   try {
     const user = await userDao.findByUserId(requestData.userId)
-    const userId = user.get('uid')
+    if (!user) {
+      res.json({ msg: "unknown tweet authorId" });
+      return
+    }
+    const userId = user['uid']!
     const createdTweet = await tweetDao.create(tweet);
-    const createdTweetId = createdTweet.get('uid')
+    if (!createdTweet) {
+    res.status(400);
+    res.json({ msg: "error when creating tweet" });
+    return;
+  }
+    const createdTweetId = createdTweet!['uid']!
+
     await neo4jDatabase!.createRelationship({
       leftNode: { label: "User", uid: userId },
       rightNode: { label: "Tweet", uid: createdTweetId },
@@ -74,7 +84,7 @@ router.post("/tweet", shouldBeAuthenticated, async function (req, res) {
       await tweetDao.increaseRepliesCount(requestData.tweetId)
     }
     res.status(200);
-    res.json({ ...createdTweet.get('t').properties, author: user.get('u').properties });
+    res.json({ ...createdTweet, author: user });
   } catch (e) {
     res.status(400);
     console.log(e)

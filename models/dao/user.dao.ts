@@ -1,4 +1,5 @@
 import UserInterface from '../../interface/user.interface';
+import UserDto from '../dto/user.dto';
 
 class UserDao implements UserInterface {
   implementation: UserInterface
@@ -6,10 +7,10 @@ class UserDao implements UserInterface {
   constructor(implementation: UserInterface) {
     this.implementation = implementation
   }
-  async findByUserId(userId: string): Promise<any> {
+  async findByUserId(userId: string): Promise<UserDto | null> {
     return await this.implementation.findByUserId(userId)
   }
-  async findByEmailAndPassword(email: string, password: string): Promise<any> {
+  async findByEmailAndPassword(email: string, password: string): Promise<UserDto | null> {
     return await this.implementation.findByEmailAndPassword(email, password)
   }
   async findByEmail(email: string): Promise<any> {
@@ -33,7 +34,7 @@ class UserDao implements UserInterface {
   async getFollowings(userId: string): Promise<any[] | null> {
     return await this.implementation.getFollowings(userId)
   }
-  async create(user: UserDto): Promise<any> {
+  async create(user: UserDto): Promise<UserDto | null> {
     return await this.implementation.create(user)
   }
 

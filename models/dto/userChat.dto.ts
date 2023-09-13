@@ -17,4 +17,4 @@ class UserChatDto {
 
 }
 
-module.exports = UserChatDto
+export default UserChatDto

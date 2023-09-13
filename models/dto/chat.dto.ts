@@ -21,4 +21,4 @@ class ChatDto {
 
 }
 
-module.exports = ChatDto
+export default ChatDto

@@ -1,8 +1,10 @@
+import TweetDto from "../models/dto/tweet.dto";
+
 export default interface TweetInterface {
 
-  create(tweet: TweetDto): Promise<any>;
+  create(tweet: TweetDto): Promise<TweetDto | null>;
   findAllTweetsUserInteractedWith(userId: string): Promise<any>;
-  findAllRelatedTweetsToUser(userId: string): Promise<any>;
+  findAllRelatedTweetsToUser(userId: string): Promise<TweetDto[] | null>;
   findById(id: string): Promise<any>;
   findInnerTweetsByTweetId(id: string): Promise<any>;
   increaseRepliesCount(id: number): Promise<any>;

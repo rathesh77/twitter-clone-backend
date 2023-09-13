@@ -1,7 +1,7 @@
 type User = {
   username: string,
   email: string,
-  password: string,
+  password?: string,
   uid?: string,
   avatar: string,
   banner?: string
@@ -28,4 +28,4 @@ class UserDto {
 
 }
 
-module.exports = UserDto
+export default UserDto

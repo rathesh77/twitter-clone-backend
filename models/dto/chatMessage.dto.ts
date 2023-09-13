@@ -18,4 +18,4 @@ class ChatMessageDto {
 
 }
 
-module.exports = ChatMessageDto
+export default ChatMessageDto

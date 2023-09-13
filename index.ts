@@ -20,6 +20,8 @@ import TweetNeo4j from "./implementation/neo4j/tweet.neo4j";
 import UserNeo4j from "./implementation/neo4j/user.neo4j";
 import UserchatSqlite from "./implementation/sqlite/userChat.sqlite";
 import MessageSqlite from "./implementation/sqlite/message.sqlite";
+import UserTweetDao from "./models/dao/userTweet.dao";
+import UserTweetNeo4j from "./implementation/neo4j/userTweet.neo4j";
 
 const chatDao = new ChatDao(new ChatSqlite, new UserchatSqlite(), new MessageSqlite())
 
@@ -71,7 +73,7 @@ dotenv.config();
     fs.readdir('uploads', function (err, files) {
       files.forEach(f => fs.rmSync('uploads/' + f))
     })
-    initData(Neo4jDB, new UserDao(new UserNeo4j()), new TweetDao(new TweetNeo4j()))
+    initData(Neo4jDB, new UserDao(new UserNeo4j()), new TweetDao(new TweetNeo4j()), new UserTweetDao(new UserTweetNeo4j()))
   }
 
   io.on('connection', (socket) => {

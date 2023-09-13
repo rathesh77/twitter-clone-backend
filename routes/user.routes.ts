@@ -7,6 +7,7 @@ import UserNeo4j from "../implementation/neo4j/user.neo4j";
 const Neo4jDB = require('../database/neo4j.database');
 import shouldNotBeAuthenticated from '../middlewares/shouldNotBeAuthenticated'
 import shouldBeAuthenticated from '../middlewares/shouldBeAuthenticated'
+import neo4jDatabase from "../database/neo4j.database";
 
 const userDao = new UserDao(new UserNeo4j())
 const router = express.Router()
@@ -30,10 +31,10 @@ router.post("/login", shouldNotBeAuthenticated, async function (req: Request, re
       res.json({ msg: "invalid credentials" })
       return
     }
-    const currentUserNode = currentUser.get('u').properties
+    const currentUserNode = currentUser
     delete currentUserNode.password
 
-    req.session.userId = currentUserNode.uid
+    req.session.userId = currentUserNode.uid!
     res.status(200)
     res.json(currentUserNode)
   } catch (e) {
@@ -52,8 +53,8 @@ router.get("/me", shouldBeAuthenticated, async function (req: Request, res: Resp
       res.json({ msg: "error" })
       return
     }
-    const currentUserNode = currentUser.get('u').properties
-    delete currentUserNode.password
+    const currentUserNode = currentUser
+    delete currentUserNode.password 
     res.status(200)
     res.json(currentUserNode)
   } catch (e) {
@@ -136,8 +137,12 @@ router.post("/register", shouldNotBeAuthenticated, async function (req: Request,
       return
     }
     const newUser = await userDao.create(credentials)
-    const newUserNode = newUser.get('u').properties
-    const newUserId = newUser.get('uid')
+    if (!newUser || !newUser['uid']) {
+      res.json({ msg: "error when creating user" })
+      return
+    }
+    const newUserNode = newUser
+    const newUserId = newUser['uid']
     req.session.userId = newUserId
     res.status(200)
     res.json(newUserNode)
@@ -163,11 +168,11 @@ router.put("/follow/:userId", shouldBeAuthenticated, async function (req: Reques
     return
   }
 
-  await Neo4jDB.createRelationship(
-    { label: "User", uid: req.session.userId },
-    { label: "User", uid: recipientId },
-    "KNOWS"
-  );
+  await neo4jDatabase!.createRelationship({
+    leftNode:{ label: "User", uid: req.session.userId },
+    rightNode:{ label: "User", uid: recipientId },
+    relation:"KNOWS"
+});
   res.status(200)
   res.json({ msg: 'success' })
 })

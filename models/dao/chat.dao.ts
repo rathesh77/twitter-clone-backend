@@ -2,6 +2,10 @@ import { RunResult } from 'sqlite3'
 import ChatInterface from '../../interface/chat.interface';
 import UserChatInterface from '../../interface/userChat.interface';
 import MessageInterface from '../../interface/message.interface';
+import ChatDto from '../dto/chat.dto';
+import UserChatDto from '../dto/userChat.dto';
+import MessageDto from '../dto/message.dto';
+import ChatMessageDto from '../dto/chatMessage.dto';
 
 class ChatDao implements ChatInterface{
 

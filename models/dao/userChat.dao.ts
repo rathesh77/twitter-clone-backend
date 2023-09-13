@@ -1,16 +1,17 @@
 import UserChatInterface from '../../interface/userChat.interface';
+import UserChatDto from '../dto/userChat.dto';
 
 class UserChatDao {
 
-  static userChatImplementation: UserChatInterface;
+  implementation: UserChatInterface;
 
-  constructor(userChatImplementation: UserChatInterface   /*passer un UserchatSqlite ici */) {
-    userChatImplementation = userChatImplementation
+  constructor(implementation: UserChatInterface   /*passer un UserchatSqlite ici */) {
+    this.implementation = implementation
 
   }
-    static async create(data: UserChatDto) {
-     return await UserChatDao.userChatImplementation.create(data)
-    }
+  async create(data: UserChatDto) {
+    return await this.implementation.create(data)
+  }
 }
 
 export default UserChatDao

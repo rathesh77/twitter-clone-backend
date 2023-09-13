@@ -1,3 +1,5 @@
+import UserDto from "./user.dto"
+
 type Tweet = {
   content: string,
   date: number
@@ -8,7 +10,7 @@ type Tweet = {
   retweets?: number
   shares?: number
   uid?: string,
-  userId?: number
+  userId?: string
 }
 
 class TweetDto {
@@ -40,4 +42,4 @@ class TweetDto {
 
 }
 
-module.exports = TweetDto
+export default TweetDto

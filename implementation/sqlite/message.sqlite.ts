@@ -1,6 +1,7 @@
 import { RunResult } from "sqlite3";
 import sqliteDatabase from "../../database/sqlite.database";
 import MessageInterface from "../../interface/message.interface";
+import MessageDto from "../../models/dto/message.dto";
 
 class MessageSqlite implements MessageInterface{
   async create(message: MessageDto): Promise<RunResult> {

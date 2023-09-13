@@ -1,4 +1,5 @@
 import TweetInterface from '../../interface/tweet.interface';
+import TweetDto from '../dto/tweet.dto';
 
 class TweetDao implements TweetInterface {
 
@@ -8,13 +9,13 @@ class TweetDao implements TweetInterface {
     this.implementation = implementation
   }
 
-  async create(tweet: TweetDto): Promise<any> {
+  async create(tweet: TweetDto): Promise<TweetDto | null> {
     return await this.implementation.create(tweet)
   }
   async findAllTweetsUserInteractedWith(userId: string): Promise<any> {
     return await this.implementation.findAllTweetsUserInteractedWith(userId)
   }
-  async findAllRelatedTweetsToUser(userId: string): Promise<any> {
+  async findAllRelatedTweetsToUser(userId: string): Promise<TweetDto[] | null> {
     return await this.implementation.findAllRelatedTweetsToUser(userId)
   }
   async findById(id: string): Promise<any> {

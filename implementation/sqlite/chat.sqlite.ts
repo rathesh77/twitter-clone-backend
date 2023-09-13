@@ -1,6 +1,8 @@
 import { RunResult } from "sqlite3";
 import sqliteDatabase from "../../database/sqlite.database";
 import ChatInterface from "../../interface/chat.interface";
+import ChatDto from "../../models/dto/chat.dto";
+import ChatMessageDto from "../../models/dto/chatMessage.dto";
 
 class ChatSqlite implements ChatInterface {
   async create(chatDto: ChatDto): Promise<RunResult> {

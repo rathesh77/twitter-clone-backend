@@ -25,4 +25,4 @@ class MessageDto {
 
 }
 
-module.exports = MessageDto
+export default MessageDto

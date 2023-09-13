@@ -1,4 +1,5 @@
 import MessageInterface from "../../interface/message.interface";
+import MessageDto from "../dto/message.dto";
 
 class MessageDao implements MessageInterface {
 

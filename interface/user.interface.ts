@@ -1,9 +1,9 @@
-import { RunResult } from "sqlite3";
+import UserDto from "../models/dto/user.dto";
 
 export default interface UserInterface {
-  create(user: UserDto): Promise<any>
-  findByUserId(userId: string): Promise<any>,
-  findByEmailAndPassword(email: string, password: string): Promise<any>,
+  create(user: UserDto): Promise<UserDto | null>
+  findByUserId(userId: string): Promise<UserDto | null>,
+  findByEmailAndPassword(email: string, password: string): Promise<UserDto | null>,
   findByEmail(email: string): Promise<any>,
   findAuthoredTweet(tweetId: number): Promise<any>,
   findResults(search: string): Promise<any[] | null>,
