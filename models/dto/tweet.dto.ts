@@ -1,43 +1,40 @@
 type Tweet = {
-  id: number
   content: string,
-  date: BigInt
-  dislikes: number
-  likes: number
+  date: number
+  dislikes?: number
+  likes?: number
   mentionnedPeople?: Partial<UserDto>[]
-  replies: number
-  retweets: number
-  shares: number
-  uid: string,
-  authorId: number
+  replies?: number
+  retweets?: number
+  shares?: number
+  uid?: string,
+  userId?: number
 }
 
 class TweetDto {
 
-  id;
+  uid?;
   content;
   date;
-  dislikes;
-  likes;
-  mentionnedPeople;
-  replies;
-  retweets;
-  shares;
-  uid;
-  authorId;
+  dislikes?;
+  likes?;
+  mentionnedPeople?;
+  replies?;
+  retweets?;
+  shares?;
+  userId?;
 
   constructor(data: Tweet) {
-    this.id = data.id;
-    this.content = data.id;
-    this.date = data.id;
-    this.dislikes = data.id;
+    this.content = data.content;
+    this.date = data.date;
+    this.dislikes = data.dislikes;
     this.likes = data.likes;
-    this.mentionnedPeople = data.id;
+    this.mentionnedPeople = data.mentionnedPeople;
     this.replies = data.replies;
     this.retweets = data.retweets;
     this.shares = data.shares;
     this.uid = data.uid;
-    this.authorId = data.authorId;
+    this.userId = data.userId;
 
   }
 

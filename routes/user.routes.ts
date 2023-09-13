@@ -1,13 +1,15 @@
 import { Request, Response } from "express";
-import session from 'express-session';
 
-const router = require('express').Router()
-const User = require('../models/User')
+import * as express from 'express'
+import UserDao from '../models/dao/user.dao'
+import UserNeo4j from "../implementation/neo4j/user.neo4j";
+
 const Neo4jDB = require('../database/neo4j.database');
-const shouldNotBeAuthenticated = require('../middlewares/shouldNotBeAuthenticated')
-const shouldBeAuthenticated = require('../middlewares/shouldBeAuthenticated')
-const { doesUserFollowRecipient } = require('../models/User')
+import shouldNotBeAuthenticated from '../middlewares/shouldNotBeAuthenticated'
+import shouldBeAuthenticated from '../middlewares/shouldBeAuthenticated'
 
+const userDao = new UserDao(new UserNeo4j())
+const router = express.Router()
 router.post("/login", shouldNotBeAuthenticated, async function (req: Request, res: Response) {
   const requestData = req.body
   if (
@@ -20,9 +22,9 @@ router.post("/login", shouldNotBeAuthenticated, async function (req: Request, re
     return
   }
 
-  const credentials = {...requestData}
+  const credentials = { ...requestData }
   try {
-    const currentUser = await User.findByEmailAndPassword(credentials)
+    const currentUser = await userDao.findByEmailAndPassword(credentials.email, credentials.password)
     if (!currentUser) {
       res.status(400)
       res.json({ msg: "invalid credentials" })
@@ -43,7 +45,8 @@ router.post("/login", shouldNotBeAuthenticated, async function (req: Request, re
 
 router.get("/me", shouldBeAuthenticated, async function (req: Request, res: Response) {
   try {
-    const currentUser = await User.findByUserId(req.session.userId)
+    console.log(req.session)
+    const currentUser = await userDao.findByUserId(req.session.userId)
     if (!currentUser) {
       res.status(400)
       res.json({ msg: "error" })
@@ -62,13 +65,16 @@ router.get("/me", shouldBeAuthenticated, async function (req: Request, res: Resp
 
 router.get("/search", shouldBeAuthenticated, async function (req: Request, res: Response) {
   try {
-    const {value} = req.query
+    const { value } = req.query
+    if (typeof value !== "string") {
+      throw "error"
+    }
     if (!value) {
       res.status(400)
       res.json({ msg: "error" })
       return
     }
-    const results = await User.findResults(value)
+    const results = await userDao.findResults(value)
     if (!results) {
       res.status(200)
       res.json([])
@@ -86,21 +92,21 @@ router.get("/search", shouldBeAuthenticated, async function (req: Request, res: 
 
 router.get("/user", shouldBeAuthenticated, async function (req: Request, res: Response) {
   try {
-    const {id} = req.query
-    if (!id) {
+    const { id } = req.query
+    if (!id || typeof id !== 'string') {
       res.status(400)
       res.json({ msg: "error" })
       return
     }
-    const user = await User.findByUserId(id)
+    const user = await userDao.findByUserId(id)
     if (!user) {
       res.status(200)
-      res.json({msg: 'error'})
+      res.json({ msg: 'error' })
       return
     }
     if (user.password)
       delete user.password
-      
+
     res.status(200)
     res.json(user)
   } catch (e) {
@@ -121,15 +127,15 @@ router.post("/register", shouldNotBeAuthenticated, async function (req: Request,
     res.json({ msg: "invalid POST payload" })
     return
   }
-  const credentials = {...requestData}
+  const credentials = { ...requestData }
   try {
-    const userAlreadyExists = await User.findByEmail(credentials.email)
+    const userAlreadyExists = await userDao.findByEmail(credentials.email)
     if (userAlreadyExists) {
       res.status(400)
       res.json({ msg: "email already in use" })
       return
     }
-    const newUser = await User.create(credentials)
+    const newUser = await userDao.create(credentials)
     const newUserNode = newUser.get('u').properties
     const newUserId = newUser.get('uid')
     req.session.userId = newUserId
@@ -143,7 +149,7 @@ router.post("/register", shouldNotBeAuthenticated, async function (req: Request,
 })
 
 router.put("/follow/:userId", shouldBeAuthenticated, async function (req: Request, res: Response) {
-  const {userId} = req.params
+  const { userId } = req.params
   if (!userId) {
     res.status(400)
     res.json({ msg: 'invalid params' })
@@ -151,7 +157,7 @@ router.put("/follow/:userId", shouldBeAuthenticated, async function (req: Reques
   }
   const recipientId = userId
 
-  if (await doesUserFollowRecipient(req.session.userId, recipientId) !== false) {
+  if (await userDao.doesUserFollowRecipient(req.session.userId, +recipientId) !== false) {
     res.status(400)
     res.json({ msg: 'you already follow this user' })
     return
@@ -167,7 +173,7 @@ router.put("/follow/:userId", shouldBeAuthenticated, async function (req: Reques
 })
 
 router.get("/follow/:userId", shouldBeAuthenticated, async function (req: Request, res: Response) {
-  const {userId} = req.params
+  const { userId } = req.params
   if (!userId) {
     res.status(400)
     res.json({ msg: 'invalid params' })
@@ -175,7 +181,7 @@ router.get("/follow/:userId", shouldBeAuthenticated, async function (req: Reques
   }
   const recipientId = userId
 
-  const relation = await doesUserFollowRecipient(req.session.userId, recipientId)
+  const relation = await userDao.doesUserFollowRecipient(req.session.userId, +recipientId)
   if (relation !== false) {
     res.status(200)
     res.json(relation)
@@ -188,39 +194,37 @@ router.get("/follow/:userId", shouldBeAuthenticated, async function (req: Reques
 
 router.get("/suggestions", shouldBeAuthenticated, async function (req: Request, res: Response) {
 
-  const suggestions = await User.getSuggestionsForUser(req.session.userId)
+  const suggestions = await userDao.getSuggestionsForUser(req.session.userId)
   res.status(200)
   res.json(suggestions)
 })
 
 router.get("/followers", shouldBeAuthenticated, async function (req: Request, res: Response) {
 
-  const {id} = req.query
-  if (!id) {
+  const { id } = req.query
+  if (!id || typeof id !== "string") {
     res.status(400)
     res.json({ msg: 'invalid params' })
     return
   }
 
-  const result = await User.getFollowers(id)
-  const count = result.toInt()
+  const count = await userDao.getFollowers(id)
   res.status(200)
-  res.json({count})
+  res.json({ count })
 })
 
 router.get("/followings", shouldBeAuthenticated, async function (req: Request, res: Response) {
 
-  const {id} = req.query
-  if (!id) {
+  const { id } = req.query
+  if (!id || typeof id !== 'string') {
     res.status(400)
     res.json({ msg: 'invalid params' })
     return
   }
 
-  const result = await User.getFollowings(id)
-  const count = result.toInt()
+  const count = await userDao.getFollowings(id)
   res.status(200)
-  res.json({count})
+  res.json({ count })
 })
 
 

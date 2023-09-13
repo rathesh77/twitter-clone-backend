@@ -1,6 +1,6 @@
 type UserChat = {
   id?: number,
-  userId: number, 
+  userId: string, 
   chatId: number
 }
 

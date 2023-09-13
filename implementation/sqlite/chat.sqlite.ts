@@ -3,20 +3,21 @@ import sqliteDatabase from "../../database/sqlite.database";
 import ChatInterface from "../../interface/chat.interface";
 
 class ChatSqlite implements ChatInterface {
+  async create(chatDto: ChatDto): Promise<RunResult> {
 
-  async create(chat: ChatDto): Promise<RunResult> {
-    const {authorId} = chat
-    return await sqliteDatabase.createEntity('chat', ["author"], [authorId])
+    const {userId} = chatDto
+    return await sqliteDatabase.createEntity('chat', ["author"], [userId])
   }
 
-  async getChatsAndMessagesRelatedToUser(userId: number): Promise<ChatMessageDto[]> {
+  
+  async getChatsAndMessagesRelatedToUser(userId: string): Promise<ChatMessageDto[]> {
     return await new Promise((resolve, reject) => {
       try {
         sqliteDatabase.db.serialize(() => {
           sqliteDatabase.db.all(`
                         select 
                             sub.chatId as chatId,
-                            sub.authorId as authorId,  
+                            sub.userId as userId,  
                             uc.userId,
                             m.content, 
                             m.id as messageId,
@@ -25,7 +26,7 @@ class ChatSqlite implements ChatInterface {
                             (
                             SELECT 
                                c.id as chatId,
-                               c.authorId as authorId
+                               c.userId as userId
                             FROM 
                                 chat AS c, userchat AS uc
                             WHERE 
@@ -41,8 +42,8 @@ class ChatSqlite implements ChatInterface {
               if (!err) {
                 resolve(rows.map((r) => {
                   return new ChatMessageDto({
-                    chat: { ...r },
-                    message: { ...r }
+                    chatId:r.chatId,
+                    messageId: r.messageId
                   });
 
                 }))

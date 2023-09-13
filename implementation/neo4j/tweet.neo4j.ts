@@ -1,4 +1,4 @@
-import uuidv4 from 'uuid';
+import { uuid } from 'uuidv4';
 
 import neo4jDatabase from "../../database/neo4j.database";
 import TweetInterface from "../../interface/tweet.interface";
@@ -8,11 +8,11 @@ class TweetNeo4j implements TweetInterface {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
-      const uid = uuidv4.v4()
+      const uid = uuid()
       const tx = session.beginTransaction();
-      const { authorId } = tweet;
-      const getAuthorQuery = `MATCH (u: User) WHERE u.uid = $authorId RETURN u LIMIT 1`;
-      const author = await tx.run(getAuthorQuery, { authorId });
+      const { userId } = tweet;
+      const getAuthorQuery = `MATCH (u: User) WHERE u.uid = $userId RETURN u LIMIT 1`;
+      const author = await tx.run(getAuthorQuery, { userId });
 
       if (author.records.length === 0) {
         throw 'l\'auteur n\'existe pas'
@@ -34,10 +34,10 @@ class TweetNeo4j implements TweetInterface {
       const createdTweet = await tx.run(postTweetQuery, { ...tweet, uid });
       console.info(`Created tweet: ${JSON.stringify(createdTweet.records[0])}`);
       const mergeAuthorAndTweetQuery = `
-                                        MATCH (u: User {uid: $authorId}), (t: Tweet {uid: $uid})
+                                        MATCH (u: User {uid: $userId}), (t: Tweet {uid: $uid})
                                         return u, t, t.uid as uid
                                       `
-      const mergeAuthorAndTweet = await tx.run(mergeAuthorAndTweetQuery, { authorId, uid });
+      const mergeAuthorAndTweet = await tx.run(mergeAuthorAndTweetQuery, { userId, uid });
       await tx.commit();
       return mergeAuthorAndTweet.records[0];
     } catch (error) {
@@ -46,7 +46,7 @@ class TweetNeo4j implements TweetInterface {
       await session.close();
     }
   }
-  async findAllTweetsUserInteractedWith(userId: number): Promise<any> {
+  async findAllTweetsUserInteractedWith(userId: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -68,7 +68,7 @@ class TweetNeo4j implements TweetInterface {
     }
   }
 
-  async findAllRelatedTweetsToUser(userId: number): Promise<any> {
+  async findAllRelatedTweetsToUser(userId: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -94,7 +94,7 @@ class TweetNeo4j implements TweetInterface {
       await session.close();
     }
   }
-  async findById(id: number): Promise<any> {
+  async findById(id: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -111,7 +111,7 @@ class TweetNeo4j implements TweetInterface {
       await session.close();
     }
   }
-  async findInnerTweetsByTweetId(id: number): Promise<any> {
+  async findInnerTweetsByTweetId(id: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -179,7 +179,7 @@ class TweetNeo4j implements TweetInterface {
   async cancelRetweet(id: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  async findUserThatRetweeted(id: number, userId: number): Promise<any> {
+  async findUserThatRetweeted(id: number, userId: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -194,7 +194,7 @@ class TweetNeo4j implements TweetInterface {
       await session.close();
     }
   }
-  async findUserThatLiked(id: number, userId: number): Promise<any> {
+  async findUserThatLiked(id: number, userId: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -209,7 +209,7 @@ class TweetNeo4j implements TweetInterface {
       await session.close();
     }
   }
-  async findUserThatDisliked(id: number, userId: number): Promise<any> {
+  async findUserThatDisliked(id: number, userId: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {

@@ -1,6 +1,6 @@
 CREATE TABLE userChat (userId TEXT, chatId TEXT, FOREIGN KEY(chatId) REFERENCES chat(id));     
 CREATE TABLE message (id INTEGER primary KEY AUTOINCREMENT, content TEXT, userId TEXT, chatId TEXT, date INTEGER, FOREIGN KEY (userId) REFERENCES userChat(userId), FOREIGN KEY(chatId) REFERENCES chat(id)); 
-CREATE TABLE chat (id INTEGER primary KEY AUTOINCREMENT, authorId TEXT);
+CREATE TABLE chat (id INTEGER primary KEY AUTOINCREMENT, userId TEXT);
 
 CREATE TABLE chatMessage (chatId TEXT, idMessage TEXT, FOREIGN KEY (chatId) REFERENCES chat(id), FOREIGN KEY (idMessage) REFERENCES message(id));
 

@@ -6,7 +6,7 @@ class UserDao implements UserInterface {
   constructor(implementation: UserInterface) {
     this.implementation = implementation
   }
-  async findByUserId(userId: number): Promise<any> {
+  async findByUserId(userId: string): Promise<any> {
     return await this.implementation.findByUserId(userId)
   }
   async findByEmailAndPassword(email: string, password: string): Promise<any> {
@@ -21,19 +21,19 @@ class UserDao implements UserInterface {
   async findResults(search: string): Promise<any[] | null> {
     return await this.implementation.findResults(search)
   }
-  async doesUserFollowRecipient(userId: number, recipientId: number): Promise<any> {
+  async doesUserFollowRecipient(userId: string, recipientId: number): Promise<any> {
     return await this.implementation.doesUserFollowRecipient(userId, recipientId)
   }
-  async getSuggestionsForUser(userId: number): Promise<UserDto[] | null> {
+  async getSuggestionsForUser(userId: string): Promise<any[] | null> {
     return await this.implementation.getSuggestionsForUser(userId)
   }
-  async getFollowers(userId: number): Promise<UserDto[] | null> {
+  async getFollowers(userId: string): Promise<any[] | null> {
     return await this.implementation.getFollowers(userId)
   }
-  async getFollowings(userId: number): Promise<UserDto[] | null> {
+  async getFollowings(userId: string): Promise<any[] | null> {
     return await this.implementation.getFollowings(userId)
   }
-  async create(user: UserDto) {
+  async create(user: UserDto): Promise<any> {
     return await this.implementation.create(user)
   }
 

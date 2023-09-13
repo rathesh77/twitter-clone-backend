@@ -1,14 +1,14 @@
 type Message = {
   id?: number,
   content: string,
-  userId: number,
+  userId: string,
   chatId: number,
   date: number
 }
 
 class MessageDto {
 
-  id;
+  id?;
   content;
   userId;
   chatId;

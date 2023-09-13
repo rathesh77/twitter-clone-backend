@@ -11,16 +11,16 @@ class TweetDao implements TweetInterface {
   async create(tweet: TweetDto): Promise<any> {
     return await this.implementation.create(tweet)
   }
-  async findAllTweetsUserInteractedWith(userId: number): Promise<any> {
+  async findAllTweetsUserInteractedWith(userId: string): Promise<any> {
     return await this.implementation.findAllTweetsUserInteractedWith(userId)
   }
-  async findAllRelatedTweetsToUser(userId: number): Promise<any> {
+  async findAllRelatedTweetsToUser(userId: string): Promise<any> {
     return await this.implementation.findAllRelatedTweetsToUser(userId)
   }
-  async findById(id: number): Promise<any> {
+  async findById(id: string): Promise<any> {
     return await this.implementation.findById(id)
   }
-  async findInnerTweetsByTweetId(id: number): Promise<any> {
+  async findInnerTweetsByTweetId(id: string): Promise<any> {
     return await this.implementation.findInnerTweetsByTweetId(id)
   }
   async increaseRepliesCount(id: number): Promise<any> {
@@ -35,13 +35,13 @@ class TweetDao implements TweetInterface {
   async cancelRetweet(id: number): Promise<any> {
     return await this.implementation.cancelRetweet(id)
   }
-  async findUserThatRetweeted(id: number, userId: number): Promise<any> {
+  async findUserThatRetweeted(id: number, userId: string): Promise<any> {
     return await this.implementation.findUserThatRetweeted(id, userId)
   }
-  async findUserThatLiked(id: number, userId: number): Promise<any> {
+  async findUserThatLiked(id: number, userId: string): Promise<any> {
     return await this.implementation.findUserThatLiked(id, userId)
   }
-  async findUserThatDisliked(id: number, userId: number): Promise<any> {
+  async findUserThatDisliked(id: number, userId: string): Promise<any> {
     return await this.implementation.findUserThatDisliked(id, userId)
   }
   async likeTweet(id: number): Promise<any> {

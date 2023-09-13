@@ -1,4 +1,4 @@
-import uuidv4 from 'uuid';
+import { uuid } from 'uuidv4';
 import bcrypt from 'bcrypt';
 import neo4jDatabase from '../../database/neo4j.database';
 import UserInterface from '../../interface/user.interface';
@@ -10,7 +10,7 @@ class UserNeo4j implements UserInterface{
   async create(user: UserDto) {
     
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
-    const uid = uuidv4.v4()
+    const uid = uuid()
     const hashedPassword = await bcrypt.hash(user.password, saltRounds)
     try {
       const writeQuery = `CREATE (u:User {
@@ -41,7 +41,7 @@ class UserNeo4j implements UserInterface{
     }
   }
   
-  async findByUserId(userId: number): Promise<UserDto | null> {
+  async findByUserId(userId: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -68,7 +68,7 @@ class UserNeo4j implements UserInterface{
     try {
       const tx = session.beginTransaction();
       const getUserQuery = `MATCH (u: User {email: $email}) RETURN u`;
-      let user = await tx.run(getUserQuery, { email });
+      let user: any = await tx.run(getUserQuery, { email });
       if (user.records.length === 0)
         return false
       user = user.records[0]
@@ -135,7 +135,7 @@ class UserNeo4j implements UserInterface{
     }
     return null
   }
-  async doesUserFollowRecipient(userId: number, recipientId: number): Promise<boolean | any | null> {
+  async doesUserFollowRecipient(userId: string, recipientId: number): Promise<boolean | any | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
@@ -153,7 +153,7 @@ class UserNeo4j implements UserInterface{
     }
     return null
   }
-  async getSuggestionsForUser(userId: number): Promise<UserDto[] | null> {
+  async getSuggestionsForUser(userId: string): Promise<any[]| null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
@@ -174,7 +174,7 @@ class UserNeo4j implements UserInterface{
     }
     return null
   }
-  async getFollowers(userId: number): Promise<UserDto[] | null> {
+  async getFollowers(userId: string): Promise<any[] | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
@@ -185,7 +185,7 @@ class UserNeo4j implements UserInterface{
       const results = await tx.run(query, { userId });
     
       await tx.commit();
-      return results.records[0].get('count');
+      return results.records[0].get('count').toInt();
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -193,7 +193,7 @@ class UserNeo4j implements UserInterface{
     }
     return null
   }
-  async getFollowings(userId: number): Promise<UserDto[] | null> {
+  async getFollowings(userId: string): Promise<any[] | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
@@ -204,7 +204,7 @@ class UserNeo4j implements UserInterface{
       const results = await tx.run(query, { userId });
     
       await tx.commit();
-      return results.records[0].get('count');
+      return results.records[0].get('count').toInt();
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
