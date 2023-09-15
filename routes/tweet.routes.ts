@@ -241,10 +241,10 @@ router.post("/retweet/:id", shouldBeAuthenticated, async function (req, res) {
       return
     }
 
-    const userAlreadyRetweet = await tweetDao.findUserThatRetweeted(+id, req.session.userId!)
+    const userAlreadyRetweet = await tweetDao.findUserThatRetweeted(id, req.session.userId!)
     if (userAlreadyRetweet != null) {
 
-      await tweetDao.cancelRetweet(+id)
+      await tweetDao.cancelRetweet(id)
       await neo4jDatabase!.removeRelationship({
         leftNode: { label: "User", uid: req.session.userId ? req.session.userId : '' },
         rightNode: { label: "Tweet", uid: id },
@@ -257,7 +257,7 @@ router.post("/retweet/:id", shouldBeAuthenticated, async function (req, res) {
       return
     }
 
-    await tweetDao.retweet(+id)
+    await tweetDao.retweet(id)
     await neo4jDatabase!.createRelationship({
       leftNode: { label: "User", uid: req.session.userId ? req.session.userId : '' },
       rightNode: { label: "Tweet", uid: id },
@@ -274,16 +274,16 @@ router.post("/retweet/:id", shouldBeAuthenticated, async function (req, res) {
 
 });
 
-router.post("/likeTweet/:id", shouldBeAuthenticated, async function (req, res) {
-  const { id } = req.params;
-  if (id == null) {
+router.post("/likeTweet/:uid", shouldBeAuthenticated, async function (req, res) {
+  const { uid } = req.params;
+  if (uid == null) {
     res.status(400);
     res.json({ msg: "error" });
     return;
   }
 
   try {
-    const tweet = await tweetDao.findById(id)
+    const tweet = await tweetDao.findById(uid)
     if (tweet == null) {
       res.status(400);
       res.json({ msg: 'tweet doesnt exist' });
@@ -293,29 +293,36 @@ router.post("/likeTweet/:id", shouldBeAuthenticated, async function (req, res) {
     let likesIncrement = 1
     let dislikesDecrement = 0
 
-    if (await tweetDao.findUserThatDisliked(+id, req.session.userId!) != null) {
-      await tweetDao.cancelTweetDislike(+id)
+    const userThatDisliked = await tweetDao.findUserThatDisliked(uid, req.session.userId!)
+    const userThatLiked = await tweetDao.findUserThatLiked(uid, req.session.userId!)
+
+    console.log(uid)
+
+    console.log(userThatLiked)
+    console.log(userThatDisliked)
+    if (userThatDisliked != null) {
+      await tweetDao.cancelTweetDislike(uid)
       await neo4jDatabase!.removeRelationship({
         leftNode: { label: "User", uid: req.session.userId ? req.session.userId : '' },
-        rightNode: { label: "Tweet", uid: id },
+        rightNode: { label: "Tweet", uid },
         relation: "DISLIKED"
       }
       );
       dislikesDecrement = 1
     }
-    if (await tweetDao.findUserThatLiked(+id, req.session.userId!) == null) {
-      await tweetDao.likeTweet(+id)
+    if (await tweetDao.findUserThatLiked(uid, req.session.userId!) == null) {
+      await tweetDao.likeTweet(uid)
       await neo4jDatabase!.createRelationship({
         leftNode: { label: "User", uid: req.session.userId ? req.session.userId : '' },
-        rightNode: { label: "Tweet", uid: id },
+        rightNode: { label: "Tweet", uid },
         relation: "LIKED"
       }
       );
     } else {
-      await tweetDao.cancelTweetLike(+id)
+      await tweetDao.cancelTweetLike(uid)
       await neo4jDatabase!.removeRelationship({
         leftNode: { label: "User", uid: req.session.userId ? req.session.userId : '' },
-        rightNode: { label: "Tweet", uid: id },
+        rightNode: { label: "Tweet", uid },
         relation: "LIKED"
       }
       );
@@ -324,7 +331,7 @@ router.post("/likeTweet/:id", shouldBeAuthenticated, async function (req, res) {
     }
 
     res.status(200)
-    res.json({ tweet, likesIncrement, dislikesDecrement });
+    res.json({ /*tweet,*/ likesIncrement, dislikesDecrement });
 
   } catch (e) {
     console.log(e)
@@ -352,8 +359,8 @@ router.post("/dislikeTweet/:id", shouldBeAuthenticated, async function (req, res
 
     let dislikesIncrement = 1
     let likesDecrement = 0
-    if (await tweetDao.findUserThatLiked(+id, req.session.userId!) != null) {
-      await tweetDao.cancelTweetLike(+id)
+    if (await tweetDao.findUserThatLiked(id, req.session.userId!) != null) {
+      await tweetDao.cancelTweetLike(id)
       await neo4jDatabase!.removeRelationship({
         leftNode: { label: "User", uid: req.session.userId ? req.session.userId : '' },
         rightNode: { label: "Tweet", uid: id },
@@ -362,8 +369,8 @@ router.post("/dislikeTweet/:id", shouldBeAuthenticated, async function (req, res
       );
       likesDecrement = 1
     }
-    if (await tweetDao.findUserThatDisliked(+id, req.session.userId!) == null) {
-      await tweetDao.dislikeTweet(+id)
+    if (await tweetDao.findUserThatDisliked(id, req.session.userId!) == null) {
+      await tweetDao.dislikeTweet(id)
       await neo4jDatabase!.createRelationship({
         leftNode: { label: "User", uid: req.session.userId ? req.session.userId : '' },
         rightNode: { label: "Tweet", uid: id },
@@ -372,7 +379,7 @@ router.post("/dislikeTweet/:id", shouldBeAuthenticated, async function (req, res
       );
 
     } else {
-      await tweetDao.cancelTweetDislike(+id)
+      await tweetDao.cancelTweetDislike(id)
       await neo4jDatabase!.removeRelationship({
         leftNode: { label: "User", uid: req.session.userId ? req.session.userId : '' },
         rightNode: { label: "Tweet", uid: id },

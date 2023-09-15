@@ -18,44 +18,44 @@ class TweetDao implements TweetInterface {
   async findAllRelatedTweetsToUser(userId: string): Promise<TweetDto[] | null> {
     return await this.implementation.findAllRelatedTweetsToUser(userId)
   }
-  async findById(id: string): Promise<any> {
-    return await this.implementation.findById(id)
+  async findById(uid: string): Promise<any> {
+    return await this.implementation.findById(uid)
   }
-  async findInnerTweetsByTweetId(id: string): Promise<any> {
-    return await this.implementation.findInnerTweetsByTweetId(id)
+  async findInnerTweetsByTweetId(uid: string): Promise<any> {
+    return await this.implementation.findInnerTweetsByTweetId(uid)
   }
-  async increaseRepliesCount(id: number): Promise<any> {
-    return await this.implementation.increaseRepliesCount(id)
+  async increaseRepliesCount(uid: string): Promise<any> {
+    return await this.implementation.increaseRepliesCount(uid)
   }
   async findLimit1(): Promise<any> {
     return await this.implementation.findLimit1()
   }
-  async retweet(id: number): Promise<any> {
-    return await this.implementation.retweet(id)
+  async retweet(uid: string): Promise<any> {
+    return await this.implementation.retweet(uid)
   }
-  async cancelRetweet(id: number): Promise<any> {
-    return await this.implementation.cancelRetweet(id)
+  async cancelRetweet(uid: string): Promise<any> {
+    return await this.implementation.cancelRetweet(uid)
   }
-  async findUserThatRetweeted(id: number, userId: string): Promise<any> {
-    return await this.implementation.findUserThatRetweeted(id, userId)
+  async findUserThatRetweeted(uid: string, userId: string): Promise<any> {
+    return await this.implementation.findUserThatRetweeted(uid, userId)
   }
-  async findUserThatLiked(id: number, userId: string): Promise<any> {
-    return await this.implementation.findUserThatLiked(id, userId)
+  async findUserThatLiked(uid: string, userId: string): Promise<any> {
+    return await this.implementation.findUserThatLiked(uid, userId)
   }
-  async findUserThatDisliked(id: number, userId: string): Promise<any> {
-    return await this.implementation.findUserThatDisliked(id, userId)
+  async findUserThatDisliked(uid: string, userId: string): Promise<any> {
+    return await this.implementation.findUserThatDisliked(uid, userId)
   }
-  async likeTweet(id: number): Promise<any> {
-    return await this.implementation.likeTweet(id)
+  async likeTweet(uid: string): Promise<any> {
+    return await this.implementation.likeTweet(uid)
   }
-  async cancelTweetLike(id: number): Promise<any> {
-    return await this.implementation.cancelTweetLike(id)
+  async cancelTweetLike(uid: string): Promise<any> {
+    return await this.implementation.cancelTweetLike(uid)
   }
-  async dislikeTweet(id: number): Promise<any> {
-    return await this.implementation.dislikeTweet(id)
+  async dislikeTweet(uid: string): Promise<any> {
+    return await this.implementation.dislikeTweet(uid)
   }
-  async cancelTweetDislike(id: number): Promise<any> {
-    return await this.implementation.cancelTweetDislike(id)
+  async cancelTweetDislike(uid: string): Promise<any> {
+    return await this.implementation.cancelTweetDislike(uid)
   }
 
 }
