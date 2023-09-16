@@ -3,12 +3,13 @@ import bcrypt from 'bcrypt';
 import neo4jDatabase from '../../database/neo4j.database';
 import UserInterface from '../../interface/user.interface';
 import UserDto from '../../models/dto/user.dto';
+import UserTweetDto from '../../models/dto/userTweet.dto';
 const saltRounds = 10
 
 class UserNeo4j implements UserInterface{
 
   
-  async create(user: UserDto) {
+  async create(user: UserDto): Promise<UserDto | null> {
     
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     const uid = uuid()
@@ -40,6 +41,7 @@ class UserNeo4j implements UserInterface{
     } finally {
       await session.close();
     }
+    return null
   }
   
   async findByUserId(userId: string): Promise<UserDto | null> {
@@ -85,51 +87,19 @@ class UserNeo4j implements UserInterface{
     }
     return null;
   }
-  async findByEmail(email: string): Promise<any> {
+  async findByEmail(email: string): Promise<UserDto | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
       const getUserQuery = `MATCH (u: User {email: $email}) RETURN u`;
       const user = await tx.run(getUserQuery, { email });
       if (user.records.length === 0) {
-        return false
+        return null
       }
 
       await tx.commit();
 
-      return user.records[0];
-    } catch (error) {
-      console.error(`Something went wrong: ${error}`);
-    } finally {
-      await session.close();
-    }
-  }
-  async findAuthoredTweet(tweetId: number): Promise<any> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
-    try {
-      const tx = session.beginTransaction();
-      const getUserWhoAuthoredTweet = `MATCH (u: User)-[:WROTE_TWEET]->(t: Tweet {uid: $tweetId}) RETURN u`;
-      const user = await tx.run(getUserWhoAuthoredTweet, { tweetId });
-      if (user.records.length === 0) {
-        return false
-      }
-      await tx.commit();
-      return user.records[0];
-    } catch (error) {
-      console.error(`Something went wrong: ${error}`);
-    } finally {
-      await session.close();
-    }
-  }
-  async findResults(search: string): Promise<any[] | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
-    try {
-      const tx = session.beginTransaction();
-      const getResultsQuery = `MATCH (u: User) where u.username =~ '(?i)'+$search+'.*' return u`;
-      const results = await tx.run(getResultsQuery, { search });
-
-      await tx.commit();
-      return results.records;
+      return user.records[0].get('u').properties;
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -137,7 +107,47 @@ class UserNeo4j implements UserInterface{
     }
     return null
   }
-  async doesUserFollowRecipient(userId: string, recipientId: string): Promise<boolean | any | null> {
+  async findAuthoredTweet(tweetId: number): Promise<UserTweetDto | null> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    try {
+      const tx = session.beginTransaction();
+      const getUserWhoAuthoredTweet = `MATCH (u: User)-[:WROTE_TWEET]->(t: Tweet {uid: $tweetId}) RETURN u,t `;
+      const user = await tx.run(getUserWhoAuthoredTweet, { tweetId });
+      if (user.records.length === 0) {
+        return null
+      }
+      await tx.commit();
+      return {
+        user: user.records[0].get('u').properties,
+        relation: 'WROTE_TWEET',
+        tweet: user.records[0].get('t').properties
+      };
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+    return null
+  }
+  async findResults(search: string): Promise<UserDto[] | null> {
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    try {
+      const tx = session.beginTransaction();
+      const getResultsQuery = `MATCH (u: User) where u.username =~ '(?i)'+$search+'.*' return u`;
+      const results = await tx.run(getResultsQuery, { search });
+
+      await tx.commit();
+      return results.records.map((r) => {
+        return {...r.get('u').properties}as UserDto
+      });
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+    return null
+  }
+  async doesUserFollowRecipient(userId: string, recipientId: string): Promise<boolean | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
@@ -147,7 +157,7 @@ class UserNeo4j implements UserInterface{
         return false
       }
       await tx.commit();
-      return results.records[0];
+      return true
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -155,7 +165,7 @@ class UserNeo4j implements UserInterface{
     }
     return null
   }
-  async getSuggestionsForUser(userId: string): Promise<any[]| null> {
+  async getSuggestionsForUser(userId: string): Promise<UserDto[]| null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
@@ -168,7 +178,9 @@ class UserNeo4j implements UserInterface{
       const results = await tx.run(query, { userId });
     
       await tx.commit();
-      return results.records;
+      return results.records.map((r) => {
+        return ({...r.get('u').properties})
+      });
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -176,7 +188,7 @@ class UserNeo4j implements UserInterface{
     }
     return null
   }
-  async getFollowers(userId: string): Promise<any[] | null> {
+  async getFollowersCount(userId: string): Promise<number | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();
@@ -195,7 +207,7 @@ class UserNeo4j implements UserInterface{
     }
     return null
   }
-  async getFollowings(userId: string): Promise<any[] | null> {
+  async getFollowingsCount(userId: string): Promise<number | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();

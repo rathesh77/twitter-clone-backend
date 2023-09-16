@@ -42,7 +42,7 @@ class TweetDao implements TweetInterface {
   async findUserThatDisliked(uid: string, userId: string): Promise<UserTweetDto | null> {
     return await this.implementation.findUserThatDisliked(uid, userId)
   }
-  async likeTweet(uid: string): Promise<any> {
+  async likeTweet(uid: string): Promise<TweetDto | null> {
     return await this.implementation.likeTweet(uid)
   }
   async cancelTweetLike(uid: string): Promise<TweetDto | null> {

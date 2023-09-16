@@ -213,7 +213,7 @@ router.get("/followers", shouldBeAuthenticated, async function (req: Request, re
     return
   }
 
-  const count = await userDao.getFollowers(id)
+  const count = await userDao.getFollowersCount(id)
   res.status(200)
   res.json({ count })
 })
@@ -227,7 +227,7 @@ router.get("/followings", shouldBeAuthenticated, async function (req: Request, r
     return
   }
 
-  const count = await userDao.getFollowings(id)
+  const count = await userDao.getFollowingsCount(id)
   res.status(200)
   res.json({ count })
 })
