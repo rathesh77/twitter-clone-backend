@@ -22,19 +22,9 @@ import UserchatSqlite from "./implementation/sqlite/userChat.sqlite";
 import MessageSqlite from "./implementation/sqlite/message.sqlite";
 import UserTweetDao from "./models/dao/userTweet.dao";
 import UserTweetNeo4j from "./implementation/neo4j/userTweet.neo4j";
+import * as _ from "./types";
 
 const chatDao = new ChatDao(new ChatSqlite, new UserchatSqlite(), new MessageSqlite())
-declare module 'http' {
-  interface IncomingMessage {
-    session: {[key: string]: string}
-  }
-}
-
-declare module 'express-session' {
-  interface IncomingMessage {
-    session: {[key: string]: string}
-  }
-}
 
 const app = express();
 const sessionMiddleware = session({
