@@ -137,7 +137,7 @@ class UserNeo4j implements UserInterface{
     }
     return null
   }
-  async doesUserFollowRecipient(userId: string, recipientId: number): Promise<boolean | any | null> {
+  async doesUserFollowRecipient(userId: string, recipientId: string): Promise<boolean | any | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
     try {
       const tx = session.beginTransaction();

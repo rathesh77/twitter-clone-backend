@@ -162,7 +162,7 @@ router.put("/follow/:userId", shouldBeAuthenticated, async function (req: Reques
   }
   const recipientId = userId
 
-  if (await userDao.doesUserFollowRecipient(req.session.userId, +recipientId) !== false) {
+  if (await userDao.doesUserFollowRecipient(req.session.userId, recipientId) !== false) {
     res.status(400)
     res.json({ msg: 'you already follow this user' })
     return
@@ -186,7 +186,7 @@ router.get("/follow/:userId", shouldBeAuthenticated, async function (req: Reques
   }
   const recipientId = userId
 
-  const relation = await userDao.doesUserFollowRecipient(req.session.userId, +recipientId)
+  const relation = await userDao.doesUserFollowRecipient(req.session.userId, recipientId)
   if (relation !== false) {
     res.status(200)
     res.json(relation)

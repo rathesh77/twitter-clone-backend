@@ -7,7 +7,7 @@ export default interface UserInterface {
   findByEmail(email: string): Promise<any>,
   findAuthoredTweet(tweetId: number): Promise<any>,
   findResults(search: string): Promise<any[] | null>,
-  doesUserFollowRecipient(userId: string, recipientId: number): Promise<boolean | any | null>,
+  doesUserFollowRecipient(userId: string, recipientId: string): Promise<boolean | any | null>,
   getSuggestionsForUser(userId: string): Promise<any[] | null>,
   getFollowers(userId: string): Promise<any[] | null>,
   getFollowings(userId: string): Promise<any[] | null>

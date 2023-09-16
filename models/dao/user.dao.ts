@@ -22,7 +22,7 @@ class UserDao implements UserInterface {
   async findResults(search: string): Promise<any[] | null> {
     return await this.implementation.findResults(search)
   }
-  async doesUserFollowRecipient(userId: string, recipientId: number): Promise<any> {
+  async doesUserFollowRecipient(userId: string, recipientId: string): Promise<any> {
     return await this.implementation.doesUserFollowRecipient(userId, recipientId)
   }
   async getSuggestionsForUser(userId: string): Promise<any[] | null> {
