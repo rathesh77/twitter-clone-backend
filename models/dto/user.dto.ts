@@ -2,7 +2,7 @@ type User = {
   username: string,
   email: string,
   password?: string,
-  uid?: string,
+  uid: string,
   avatar: string,
   banner?: string
 }

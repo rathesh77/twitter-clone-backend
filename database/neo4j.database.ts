@@ -54,9 +54,10 @@ class Neo4jDB {
           MERGE (b:${rightNode.label} {uid: $rightId })
           MERGE (a)-[:${relation}]->(b)
           RETURN a, b`;
-      await tx.run(writeQuery, { leftId: leftNode.uid, rightId: rightNode.uid })
+      const result = await tx.run(writeQuery, { leftId: leftNode.uid, rightId: rightNode.uid })
       await tx.commit();
       console.log("relationship created");
+      return {'a': result.records[0].get('a'), 'b': result.records[0].get('b')}
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {

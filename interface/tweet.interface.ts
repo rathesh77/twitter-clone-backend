@@ -1,10 +1,11 @@
 import TweetDto from "../models/dto/tweet.dto";
+import UserTweetDto from "../models/dto/userTweet.dto";
 
 export default interface TweetInterface {
 
-  create(tweet: TweetDto): Promise<TweetDto | null>;
-  findAllTweetsUserInteractedWith(userId: string): Promise<any>;
-  findAllRelatedTweetsToUser(userId: string): Promise<TweetDto[] | null>;
+  create(tweet: TweetDto): Promise<UserTweetDto | null>;
+  findAllTweetsUserInteractedWith(userId: string): Promise<UserTweetDto[] | null>;
+  findAllRelatedTweetsToUser(userId: string): Promise<UserTweetDto[] | null>;
   findById(uid: string): Promise<any>;
   findInnerTweetsByTweetId(uid: string): Promise<any>;
   increaseRepliesCount(uid: string): Promise<any>;

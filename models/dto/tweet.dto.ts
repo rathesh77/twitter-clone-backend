@@ -16,7 +16,7 @@ type Tweet = {
 
 class TweetDto {
 
-  uid?;
+  uid;
   content;
   date;
   dislikes?;

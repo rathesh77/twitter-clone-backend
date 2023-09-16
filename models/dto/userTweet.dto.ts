@@ -1,20 +1,10 @@
-type UserTweet = {
-  id?: number,
-  userId: string, 
-  tweetId: string
-}
+import TweetDto from "./tweet.dto"
+import UserDto from "./user.dto"
 
-class UserTweetDto {
-  id;
-  userId;
-  tweetId;
-
-  constructor(data: UserTweet) {
-    this.id = data.id
-    this.userId = data.userId
-    this.tweetId = data.tweetId
-  }
-
+interface UserTweetDto {
+  relation: string,
+  user: UserDto, 
+  tweet: TweetDto
 }
 
 export default UserTweetDto

@@ -3,9 +3,10 @@ import { uuid } from 'uuidv4';
 import neo4jDatabase from "../../database/neo4j.database";
 import TweetInterface from "../../interface/tweet.interface";
 import TweetDto from '../../models/dto/tweet.dto';
+import UserTweetDto from '../../models/dto/userTweet.dto';
 
 class TweetNeo4j implements TweetInterface {
-  async create(tweet: TweetDto): Promise<TweetDto | null> {
+  async create(tweet: TweetDto): Promise<UserTweetDto | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -43,7 +44,24 @@ class TweetNeo4j implements TweetInterface {
                                       `
       const mergeAuthorAndTweet = await tx.run(mergeAuthorAndTweetQuery, { userId, uid });
       await tx.commit();
-      return mergeAuthorAndTweet.records[0].get('t').properties;
+
+      const node = {
+        leftNode: { label: "User", uid: userId! },
+        rightNode: { label: "Tweet", uid: uid },
+        relation: "WROTE_TWEET"
+      }
+      const relationShip = await neo4jDatabase!.createRelationship(node);
+  
+      if (!relationShip) {
+        throw "error when creating relationship between user and tweet [WROTE_TWEET]"
+      }
+
+      return {
+       tweet: mergeAuthorAndTweet.records[0].get('t').properties,
+       user: mergeAuthorAndTweet.records[0].get('u').properties,
+       relation: mergeAuthorAndTweet.records[0].get('u').properties
+
+      };
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -51,7 +69,7 @@ class TweetNeo4j implements TweetInterface {
     }
     return null;
   }
-  async findAllTweetsUserInteractedWith(userId: string): Promise<any> {
+  async findAllTweetsUserInteractedWith(userId: string): Promise<UserTweetDto[] | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -65,15 +83,22 @@ class TweetNeo4j implements TweetInterface {
 
       await tx.commit();
 
-      return tweets.records;
+      return tweets.records.map((t) => {
+        return ({
+          tweet: t.get('t').properties,
+          user: t.get('u').properties,
+          relation: t.get('type(r)'),
+        })
+      }) as UserTweetDto[];
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
     }
+    return null
   }
 
-  async findAllRelatedTweetsToUser(userId: string): Promise<TweetDto[] | null> {
+  async findAllRelatedTweetsToUser(userId: string): Promise<UserTweetDto[] | null> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
 
     try {
@@ -98,11 +123,11 @@ class TweetNeo4j implements TweetInterface {
           {
             tweet: t.get('t').properties,
             user: t.get('u').properties,
-            type: t.get('type(ut)')
+            relation: t.get('type(ut)')
           }
         )
       }
-      ) as unknown as TweetDto[];
+      ) as unknown as UserTweetDto[];
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {

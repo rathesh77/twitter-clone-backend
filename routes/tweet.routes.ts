@@ -43,7 +43,6 @@ router.post("/media", fileLimit, upload.single('file'), shouldBeAuthenticated, a
 router.post("/tweet", shouldBeAuthenticated, async function (req, res) {
   const requestData = req.body.data;
   if (
-    requestData.userId == null ||
     requestData.content == null ||
     requestData.mentionnedPeople == null
   ) {
@@ -54,6 +53,7 @@ router.post("/tweet", shouldBeAuthenticated, async function (req, res) {
 
   const tweet = {
     ...requestData,
+    userId: req.session.userId
   };
   try {
     const user = await userDao.findByUserId(requestData.userId)
@@ -68,13 +68,8 @@ router.post("/tweet", shouldBeAuthenticated, async function (req, res) {
     res.json({ msg: "error when creating tweet" });
     return;
   }
-    const createdTweetId = createdTweet!['uid']!
+    const createdTweetId = createdTweet!.user['uid']!
 
-    await neo4jDatabase!.createRelationship({
-      leftNode: { label: "User", uid: userId },
-      rightNode: { label: "Tweet", uid: createdTweetId },
-      relation: "WROTE_TWEET"
-    });
     if (requestData.tweetId != null) {
       await neo4jDatabase!.createRelationship({
         leftNode: { label: "Tweet", uid: createdTweetId },
