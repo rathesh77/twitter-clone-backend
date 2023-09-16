@@ -2,7 +2,6 @@ import Neo4jDB from './database/neo4j.database'
 import UserDao from './models/dao/user.dao'
 import TweetDao from './models/dao/tweet.dao'
 import neo4jDatabase from './database/neo4j.database'
-import UserTweetDao from './models/dao/userTweet.dao'
 import TweetDto from './models/dto/tweet.dto'
 
 async function initData(db: typeof Neo4jDB, userDao: UserDao, tweetDao: TweetDao) {

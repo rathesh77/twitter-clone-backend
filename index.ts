@@ -20,7 +20,6 @@ import TweetNeo4j from "./implementation/neo4j/tweet.neo4j";
 import UserNeo4j from "./implementation/neo4j/user.neo4j";
 import UserchatSqlite from "./implementation/sqlite/userChat.sqlite";
 import MessageSqlite from "./implementation/sqlite/message.sqlite";
-import UserTweetDao from "./models/dao/userTweet.dao";
 
 import * as _ from "./types";
 
