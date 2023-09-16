@@ -1,6 +1,6 @@
 export declare module 'http' {
  interface IncomingMessage {
-    session: {[key: string]: string}
+    session: {[key: string]: string | any}
   }
 };
 

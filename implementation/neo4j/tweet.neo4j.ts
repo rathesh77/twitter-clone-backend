@@ -93,15 +93,15 @@ class TweetNeo4j implements TweetInterface {
       await tx.commit();
 
       console.log(tweets.records)
-      return tweets.records.filter((t) => t.get('t') != null).map((t:any) => {
-      console.log(t.get('type(ut)'))
-      return (
+      return tweets.records.filter((t) => t.get('t') != null).map((t: any) => {
+        return (
           {
             tweet: t.get('t').properties,
             user: t.get('u').properties,
             type: t.get('type(ut)')
           }
-        )}
+        )
+      }
       ) as unknown as TweetDto[];
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
@@ -194,7 +194,19 @@ class TweetNeo4j implements TweetInterface {
     }
   }
   async cancelRetweet(uid: string): Promise<any> {
-    throw new Error("Method not implemented.");
+    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+
+    try {
+      const tx = session.beginTransaction();
+      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) SET t.retweets = t.retweets - 1 RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, { uid });
+      await tx.commit();
+      return tweet.records[0];
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
   }
   async findUserThatRetweeted(uid: string, userId: string): Promise<any> {
     const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
@@ -246,8 +258,11 @@ class TweetNeo4j implements TweetInterface {
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) SET t.likes = t.likes + 1 RETURN t, t.uid AS uid LIMIT 1`;
-      const tweet = await tx.run(getTweetQuery, { uid });
+      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) 
+      SET t.lastUpdated = $lastUpdated,
+      t.likes = t.likes + 1 
+      RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
       await tx.commit();
       return tweet.records[0];
     } catch (error) {
@@ -261,8 +276,11 @@ class TweetNeo4j implements TweetInterface {
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) SET t.likes = t.likes - 1 RETURN t, t.uid AS uid LIMIT 1`;
-      const tweet = await tx.run(getTweetQuery, { uid });
+      const getTweetQuery = `MATCH (t: Tweet {uid: $uid})
+      SET t.lastUpdated = $lastUpdated,
+      t.likes = t.likes - 1 
+       RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
       await tx.commit();
       return tweet.records[0];
     } catch (error) {
@@ -276,8 +294,11 @@ class TweetNeo4j implements TweetInterface {
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) SET t.dislikes = t.dislikes + 1 RETURN t, t.uid AS uid LIMIT 1`;
-      const tweet = await tx.run(getTweetQuery, { uid });
+      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) 
+      SET t.lastUpdated = $lastUpdated ,
+      t.dislikes = t.dislikes + 1 
+      RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
       await tx.commit();
       return tweet.records[0];
     } catch (error) {
@@ -291,8 +312,11 @@ class TweetNeo4j implements TweetInterface {
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) SET t.dislikes = t.dislikes - 1 RETURN t, t.uid AS uid LIMIT 1`;
-      const tweet = await tx.run(getTweetQuery, { uid });
+      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) 
+      SET t.lastUpdated = $lastUpdated,
+      t.dislikes = t.dislikes - 1 
+      RETURN t, t.uid AS uid LIMIT 1`;
+      const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
       await tx.commit();
       return tweet.records[0];
     } catch (error) {

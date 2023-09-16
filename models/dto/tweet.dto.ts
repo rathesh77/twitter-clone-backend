@@ -10,7 +10,8 @@ type Tweet = {
   retweets?: number
   shares?: number
   uid?: string,
-  userId?: string
+  userId?: string,
+  lastUpdated?: number,
 }
 
 class TweetDto {
@@ -25,6 +26,7 @@ class TweetDto {
   retweets?;
   shares?;
   userId?;
+  lastUpdated?;
 
   constructor(data: Tweet) {
     this.content = data.content;
@@ -37,7 +39,7 @@ class TweetDto {
     this.shares = data.shares;
     this.uid = data.uid;
     this.userId = data.userId;
-
+    this.lastUpdated = Infinity
   }
 
 }
