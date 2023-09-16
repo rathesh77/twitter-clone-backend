@@ -117,7 +117,6 @@ class TweetNeo4j implements TweetInterface {
 
       await tx.commit();
 
-      console.log(tweets.records)
       return tweets.records.filter((t) => t.get('t') != null).map((t: any) => {
         return (
           {

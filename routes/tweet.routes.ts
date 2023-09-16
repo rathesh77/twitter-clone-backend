@@ -69,8 +69,6 @@ router.post("/tweet", shouldBeAuthenticated, async function (req, res) {
     return;
   }
     const createdTweetId = createdTweet!.tweet['uid']!
-    console.log('requestData')
-  console.log(requestData)
     if (requestData.masterTweetId != null) {
       await neo4jDatabase!.createRelationship({
         leftNode: { label: "Tweet", uid: createdTweetId },
@@ -79,7 +77,6 @@ router.post("/tweet", shouldBeAuthenticated, async function (req, res) {
       });
       await tweetDao.increaseRepliesCount(requestData.masterTweetId)
     }
-    console.log(createdTweet)
     res.status(200);
     res.json(createdTweet);
   } catch (e) {
@@ -127,7 +124,6 @@ router.get("/deep-tweets", shouldBeAuthenticated, async function (req, res) {
   }
 
   try {
-    console.log(userId)
     const deepTweets = await tweetDao.findAllRelatedTweetsToUser(userId)
 
     res.status(200);
@@ -169,7 +165,6 @@ router.get("/tweet/:uid", shouldBeAuthenticated, async function (req, res) {
 
 router.get("/tweet/:uid/messages", shouldBeAuthenticated, async function (req, res) {
   const { uid } = req.params;
-  console.log(req.params)
   if (
     uid == null
     || typeof uid !== 'string'

@@ -26,8 +26,6 @@ async function initData(db: typeof Neo4jDB, userDao: UserDao, tweetDao: TweetDao
     tweet.userId = userId
 
     const createdTweet = await tweetDao.create(tweet)
-    console.log(createdUser)
-    console.log(createdTweet)
 
     const tweetId = createdTweet?.tweet!['uid']!
 
