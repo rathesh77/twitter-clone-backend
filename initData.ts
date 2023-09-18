@@ -43,7 +43,7 @@ async function initData(db: typeof Neo4jDB, userDao: UserDao, tweetDao: TweetDao
     });
 
 
-    const user2 = await userDao.create({ email: 'jogabi@', username: 'jogabi', password: 'pwd', avatar: 'https://www.capri-sun.com/fr/wp-content/uploads/sites/11/2021/03/TP_Multivitamin_NA_CCEP_3D_Packshot_clean_Paper.png', banner: "https://www.capri-sun.com/fr/wp-content/uploads/sites/11/2021/07/221038_CS_Improved_Paperstraw_Banner_Sprachen_FR_1.png" })
+    const user2 = await userDao.create({ email: 'jogabi@', username: 'jogabi', password: 'pwd', avatar: 'https://thefitgirlz.com/wp-content/uploads/2018/07/anacheri-2.jpg', banner: "https://www.muscleandfitness.com/wp-content/uploads/2017/09/ana-cheri-main-1109.jpg?quality=86&strip=all" })
 
     const tweet3 = await tweetDao.create(new TweetDto({ userId: user2!['uid']!, content: 'testtweet', date: Date.now() }))
     await neo4jDatabase!.createRelationship({

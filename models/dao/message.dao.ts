@@ -1,5 +1,6 @@
 import MessageInterface from "../../interface/message.interface";
 import MessageDto from "../dto/message.dto";
+import MessageRequest from "../request/message.request";
 
 class MessageDao implements MessageInterface {
 
@@ -9,7 +10,7 @@ class MessageDao implements MessageInterface {
     this.implementation = implementation
   }
 
- async create(message: MessageDto) {
+ async create(message: MessageRequest) {
     return await this.implementation.create(message)
   }
 

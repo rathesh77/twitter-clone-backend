@@ -4,10 +4,11 @@ import UserChatInterface from '../../interface/userChat.interface';
 import MessageInterface from '../../interface/message.interface';
 import ChatDto from '../dto/chat.dto';
 import UserChatDto from '../dto/userChat.dto';
+import ChatRequest from '../request/chat.request';
 import MessageDto from '../dto/message.dto';
-import ChatMessageDto from '../dto/chatMessage.dto';
 
-class ChatDao implements ChatInterface{
+
+class ChatDao {
 
   chatImplementation: ChatInterface;
   userChatImplementation: UserChatInterface;
@@ -23,22 +24,24 @@ class ChatDao implements ChatInterface{
     this.messageImplementation = messageImplementation
 
   }
-  async create(data: ChatDto, messageContent: string): Promise<RunResult> {
+
+  async create(chatRequest: ChatRequest, messageContent: string): Promise<ChatDto> {
     return await new Promise(async (resolve, reject) => {
       try {
         let runResult: RunResult
-        runResult = await this.chatImplementation.create(data)
+        const chatDto = await this.chatImplementation.create(chatRequest)
         //return runResult
-        const chatId = runResult.lastID
-        runResult = await this.userChatImplementation.create(new UserChatDto({ chatId, userId: data.userId }))
-        for (const recipient of data.recipients!) {
+        const chatId = chatDto.lastID
+        runResult = await this.userChatImplementation.create(new UserChatDto({ chatId, userId: chatRequest.userId }))
+
+        for (const recipient of chatRequest.recipients!) {
           const recipientId = recipient.uid
           runResult = await this.userChatImplementation.create(new UserChatDto({ chatId, userId: recipientId }))
 
         }
-        const {userId} = data
-        runResult = await this.messageImplementation.create(new MessageDto({content: messageContent, userId, chatId, date:Date.now()}))
-        resolve(runResult)
+        const {userId} = chatRequest
+        runResult = await this.messageImplementation.create({content: messageContent, userId, chatId, date:Date.now()} as MessageDto)
+        resolve (await this.chatImplementation.findById(chatId))
       } catch (error) {
         console.error(`Something went wrong: ${error}`);
       } finally {
@@ -46,7 +49,7 @@ class ChatDao implements ChatInterface{
     })
   }
 
-  async getChatsAndMessagesRelatedToUser(userId: string): Promise<ChatMessageDto[]> {
+  async getChatsAndMessagesRelatedToUser(userId: string): Promise<MessageDto[]> {
     return await this.chatImplementation.getChatsAndMessagesRelatedToUser(userId)
 
   }

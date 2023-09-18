@@ -46,7 +46,6 @@ router.post("/login", shouldNotBeAuthenticated, async function (req: Request, re
 
 router.get("/me", shouldBeAuthenticated, async function (req: Request, res: Response) {
   try {
-    console.log(req.session)
     const currentUser = await userDao.findByUserId(req.session.userId)
     if (!currentUser) {
       res.status(400)

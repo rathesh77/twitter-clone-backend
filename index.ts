@@ -22,9 +22,14 @@ import UserchatSqlite from "./implementation/sqlite/userChat.sqlite";
 import MessageSqlite from "./implementation/sqlite/message.sqlite";
 
 import * as _ from "./types";
+import ChatDto from "./models/dto/chat.dto";
+import MessageDto from "./models/dto/message.dto";
+import MessageRequest from "./models/request/message.request";
+import ChatRequest from "./models/request/chat.request";
+import MessageDao from "./models/dao/message.dao";
 
 const chatDao = new ChatDao(new ChatSqlite, new UserchatSqlite(), new MessageSqlite())
-
+const messageDao = new MessageDao(new MessageSqlite())
 const app = express();
 const sessionMiddleware = session({
   secret: 'toto',
@@ -87,6 +92,9 @@ dotenv.config();
       const seen: any = {}
       for (const _chat of chats) {
         const { chatId } = _chat
+        if (chatId === undefined ){
+          continue
+        }
         if (!seen[chatId]) {
           seen[chatId] = true
           if (!socket.rooms.has(`chat/${chatId}`))
@@ -97,15 +105,25 @@ dotenv.config();
     })
 
     socket.on('create_chat', async (data) => {
-      const userId = data.userId
-      const message = data.message
-      const createdChat = await chatDao.create(data, message)
+      const userId = socket.request.session.userId
+      const {recipients, content} = data
+      
+      const firstMessage: MessageRequest = {
+        content,
+        userId,
+      }
+
+      const chatRequest: ChatRequest= {
+        userId, recipients, messages: [firstMessage]
+      }
+
+      const createdChat = await chatDao.create(chatRequest, content)
+      console.log('created chat', createdChat)
       socket.emit('chat_created', createdChat)
       for (const recipient of data.recipients) {
-        let cloneRecipients = [...data.recipients]
-        cloneRecipients = cloneRecipients.filter((r) => r.uid != recipient.uid)
-        cloneRecipients.push(userId)
-        socket.to(recipient.uid).emit('user_invited_you', { ...data, ...createdChat, recipients: cloneRecipients })
+        if (recipient === userId)
+          continue
+        socket.to(recipient.uid).emit('user_invited_you', createdChat)
       }
     })
 
@@ -114,13 +132,17 @@ dotenv.config();
     })
 
     socket.on('post_message', async (message) => {
-      const createdMessageId = await chatDao.create({ recipients: [], userId: '1' }, message)
+      const createdMessageId = (await messageDao.create({
+        userId: message.author,
+        chatId: message.chatId,
+        content: message.content
+      })).lastID
+
       socket.emit('posted_message', createdMessageId)
       socket.to(`chat/${message.chatId}`).emit('user_posted_message', { ...message, messageId: createdMessageId, date: Date.now() })
     })
 
     socket.on('writing', async ({ user, chatId }) => {
-      console.log(user, chatId)
       socket.to(`chat/${chatId}`).emit('user_writing', { user, chatId })
     })
 
