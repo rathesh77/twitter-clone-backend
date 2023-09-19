@@ -51,6 +51,7 @@ class ChatSqlite implements ChatInterface {
                   recipients.add(row.messageSenderId)
                   if (!ChatAuthorId)
                     ChatAuthorId = row.ChatAuthorId
+                  if (row.messageId)
                   messages.push({
                     id: row.messageId,
                     userId: row.messageSenderId,

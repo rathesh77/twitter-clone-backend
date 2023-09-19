@@ -22,8 +22,6 @@ import UserchatSqlite from "./implementation/sqlite/userChat.sqlite";
 import MessageSqlite from "./implementation/sqlite/message.sqlite";
 
 import * as _ from "./types";
-import ChatDto from "./models/dto/chat.dto";
-import MessageDto from "./models/dto/message.dto";
 import MessageRequest from "./models/request/message.request";
 import ChatRequest from "./models/request/chat.request";
 import MessageDao from "./models/dao/message.dao";
