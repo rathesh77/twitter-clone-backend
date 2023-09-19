@@ -1,7 +1,7 @@
-import UserDto from "../models/dto/user.dto";
-import UserTweetDto from "../models/dto/userTweet.dto";
+import UserDto from '../models/dto/user.dto';
+import UserTweetDto from '../models/dto/userTweet.dto';
 
-export default interface UserInterface {
+interface UserInterface {
   create(user: UserDto): Promise<UserDto | null>
   findByUserId(userId: string): Promise<UserDto | null>,
   findByEmailAndPassword(email: string, password: string): Promise<UserDto | null>,
@@ -13,3 +13,5 @@ export default interface UserInterface {
   getFollowersCount(userId: string): Promise<number | null>,
   getFollowingsCount(userId: string): Promise<number | null>
 }
+
+export default UserInterface;

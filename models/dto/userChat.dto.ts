@@ -10,11 +10,11 @@ class UserChatDto {
   chatId;
 
   constructor(data: UserChat) {
-    this.id = data.id
-    this.userId = data.userId
-    this.chatId = data.chatId
+    this.id = data.id;
+    this.userId = data.userId;
+    this.chatId = data.chatId;
   }
 
 }
 
-export default UserChatDto
+export default UserChatDto;

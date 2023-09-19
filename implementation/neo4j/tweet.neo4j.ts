@@ -1,26 +1,27 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { uuid } from 'uuidv4';
 
-import neo4jDatabase from "../../database/neo4j.database";
-import TweetInterface from "../../interface/tweet.interface";
+import neo4jDatabase from '../../database/neo4j.database';
+import TweetInterface from '../../interface/tweet.interface';
 import TweetDto from '../../models/dto/tweet.dto';
 import UserTweetDto from '../../models/dto/userTweet.dto';
 
 class TweetNeo4j implements TweetInterface {
   async create(tweet: TweetDto): Promise<UserTweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
-      const uid = uuid()
+      const uid = uuid();
       const tx = session.beginTransaction();
       const { userId } = tweet;
-      const getAuthorQuery = `MATCH (u: User) WHERE u.uid = $userId RETURN u LIMIT 1`;
+      const getAuthorQuery = 'MATCH (u: User) WHERE u.uid = $userId RETURN u LIMIT 1';
       const author = await tx.run(getAuthorQuery, { userId });
 
       if (!tweet.mentionnedPeople) {
-        tweet.mentionnedPeople = []
+        tweet.mentionnedPeople = [];
       }
       if (author.records.length === 0) {
-        throw 'l\'auteur n\'existe pas'
+        throw 'l\'auteur n\'existe pas';
       }
       const postTweetQuery = `
                             CREATE (t:Tweet {
@@ -41,25 +42,25 @@ class TweetNeo4j implements TweetInterface {
       const mergeAuthorAndTweetQuery = `
                                         MATCH (u: User {uid: $userId}), (t: Tweet {uid: $uid})
                                         return u, t, t.uid as uid
-                                      `
+                                      `;
       const mergeAuthorAndTweet = await tx.run(mergeAuthorAndTweetQuery, { userId, uid });
       await tx.commit();
 
       const node = {
-        leftNode: { label: "User", uid: userId! },
-        rightNode: { label: "Tweet", uid: uid },
-        relation: "WROTE_TWEET"
-      }
+        leftNode: { label: 'User', uid: userId! },
+        rightNode: { label: 'Tweet', uid: uid },
+        relation: 'WROTE_TWEET'
+      };
       const relationShip = await neo4jDatabase!.createRelationship(node);
   
       if (!relationShip) {
-        throw "error when creating relationship between user and tweet [WROTE_TWEET]"
+        throw 'error when creating relationship between user and tweet [WROTE_TWEET]';
       }
 
       return {
-       tweet: mergeAuthorAndTweet.records[0].get('t').properties,
-       user: mergeAuthorAndTweet.records[0].get('u').properties,
-       relation: "WROTE_TWEET"
+        tweet: mergeAuthorAndTweet.records[0].get('t').properties,
+        user: mergeAuthorAndTweet.records[0].get('u').properties,
+        relation: 'WROTE_TWEET'
 
       };
     } catch (error) {
@@ -70,7 +71,7 @@ class TweetNeo4j implements TweetInterface {
     return null;
   }
   async findAllTweetsUserInteractedWith(userId: string): Promise<UserTweetDto[] | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
@@ -88,18 +89,18 @@ class TweetNeo4j implements TweetInterface {
           tweet: t.get('t').properties,
           user: t.get('u').properties,
           relation: t.get('type(r)'),
-        })
+        });
       }) as UserTweetDto[];
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
 
   async findAllRelatedTweetsToUser(userId: string): Promise<UserTweetDto[] | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
@@ -124,7 +125,7 @@ class TweetNeo4j implements TweetInterface {
             user: t.get('u').properties,
             relation: t.get('type(ut)')
           }
-        )
+        );
       }
       ) as unknown as UserTweetDto[];
     } catch (error) {
@@ -132,15 +133,15 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
 
   }
   async findById(uid: string): Promise<UserTweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (u: User)-[:WROTE_TWEET]->(t: Tweet) WHERE t.uid = $uid RETURN t, u, t.uid AS uid LIMIT 1`;
+      const getTweetQuery = 'MATCH (u: User)-[:WROTE_TWEET]->(t: Tweet) WHERE t.uid = $uid RETURN t, u, t.uid AS uid LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid });
 
       await tx.commit();
@@ -150,20 +151,20 @@ class TweetNeo4j implements TweetInterface {
         user: tweet.records[0].get('u').properties,
         relation: 'WROTE_TWEET'
 
-      }
+      };
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   async findInnerTweetsByTweetId(uid: string): Promise<UserTweetDto[] | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
-      const getMessagesQuery = `MATCH (t: Tweet {uid: $uid})<-[:PART_OF]-(m: Tweet)<-[:WROTE_TWEET]-(u: User) RETURN u, m ORDER BY m.date DESC`;
+      const getMessagesQuery = 'MATCH (t: Tweet {uid: $uid})<-[:PART_OF]-(m: Tweet)<-[:WROTE_TWEET]-(u: User) RETURN u, m ORDER BY m.date DESC';
       const messages = await tx.run(getMessagesQuery, { uid });
 
       await tx.commit();
@@ -172,21 +173,21 @@ class TweetNeo4j implements TweetInterface {
           user: t.get('u').properties,
           tweet: t.get('m').properties,
           relation: 'WROTE_TWEET'
-        })
+        });
       });
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   async increaseRepliesCount(uid: string): Promise<TweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) SET t.replies = t.replies + 1 RETURN t, t.uid AS uid LIMIT 1`;
+      const getTweetQuery = 'MATCH (t: Tweet {uid: $uid}) SET t.replies = t.replies + 1 RETURN t, t.uid AS uid LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid });
 
       await tx.commit();
@@ -197,15 +198,15 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
 
   async retweet(uid: string): Promise<TweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) SET t.retweets = t.retweets + 1 RETURN t, t.uid AS uid LIMIT 1`;
+      const getTweetQuery = 'MATCH (t: Tweet {uid: $uid}) SET t.retweets = t.retweets + 1 RETURN t, t.uid AS uid LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid });
       await tx.commit();
       return tweet.records[0].get('t').properties;
@@ -214,14 +215,14 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   async cancelRetweet(uid: string): Promise<TweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) SET t.retweets = t.retweets - 1 RETURN t, t.uid AS uid LIMIT 1`;
+      const getTweetQuery = 'MATCH (t: Tweet {uid: $uid}) SET t.retweets = t.retweets - 1 RETURN t, t.uid AS uid LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid });
       await tx.commit();
       return tweet.records[0].get('t').properties;
@@ -230,14 +231,14 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   async findUserThatRetweeted(uid: string, userId: string): Promise<UserTweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (u :User {uid: $userId})-[:RETWEETED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1`;
+      const getTweetQuery = 'MATCH (u :User {uid: $userId})-[:RETWEETED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid, userId });
       await tx.commit();
       return {
@@ -251,15 +252,15 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   
   async findUserThatLiked(uid: string, userId: string): Promise<UserTweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (u :User {uid: $userId})-[:LIKED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1`;
+      const getTweetQuery = 'MATCH (u :User {uid: $userId})-[:LIKED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid, userId });
       await tx.commit();
       return {
@@ -272,14 +273,14 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   async findUserThatDisliked(uid: string, userId: string): Promise<UserTweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
-      const getTweetQuery = `MATCH (u :User {uid: $userId})-[:DISLIKED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1`;
+      const getTweetQuery = 'MATCH (u :User {uid: $userId})-[:DISLIKED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid, userId });
       await tx.commit();
       return {
@@ -292,10 +293,10 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   async likeTweet(uid: string): Promise<TweetDto | null > {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
@@ -311,10 +312,10 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   async cancelTweetLike(uid: string): Promise<TweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
@@ -330,10 +331,10 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   async dislikeTweet(uid: string): Promise<TweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
@@ -349,10 +350,10 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
   async cancelTweetDislike(uid: string): Promise<TweetDto | null> {
-    const session = neo4jDatabase!.driver!.session({ database: "neo4j" });
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
@@ -368,9 +369,9 @@ class TweetNeo4j implements TweetInterface {
     } finally {
       await session.close();
     }
-    return null
+    return null;
   }
 
 }
 
-export default TweetNeo4j
+export default TweetNeo4j;

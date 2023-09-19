@@ -1,15 +1,15 @@
-import { RunResult } from "sqlite3";
-import sqliteDatabase from "../../database/sqlite.database";
-import ChatInterface from "../../interface/chat.interface";
-import ChatDto, { Recipient } from "../../models/dto/chat.dto";
-import MessageDto from "../../models/dto/message.dto";
-import ChatRequest from "../../models/request/chat.request";
+import { RunResult } from 'sqlite3';
+import sqliteDatabase from '../../database/sqlite.database';
+import ChatInterface from '../../interface/chat.interface';
+import ChatDto, { Recipient } from '../../models/dto/chat.dto';
+import MessageDto from '../../models/dto/message.dto';
+import ChatRequest from '../../models/request/chat.request';
 
 class ChatSqlite implements ChatInterface {
   async create(chatDto: ChatRequest): Promise<RunResult> {
-    const {userId} = chatDto
-    const createdChat = await sqliteDatabase.createEntity('chat', ["userId"], [userId]) 
-    return createdChat
+    const {userId} = chatDto;
+    const createdChat = await sqliteDatabase.createEntity('chat', ['userId'], [userId]); 
+    return createdChat;
   }
 
   async findById(id: number): Promise<ChatDto> {
@@ -41,41 +41,40 @@ class ChatSqlite implements ChatInterface {
           LEFT JOIN message as m ON uc.chatId = m.chatId and uc.userId = m.userId
       ORDER BY
               m.date asc`,
-            [id], (err, rows) => {
-              // process the row here 
-              if (!err) {
-                let recipients = new Set<Recipient>()
-                let messages : MessageDto []= []
-                let ChatAuthorId: string | null = null
-                for (const row of rows) {
-                  recipients.add(row.messageSenderId)
-                  if (!ChatAuthorId)
-                    ChatAuthorId = row.ChatAuthorId
-                  if (row.messageId)
+          [id], (err, rows) => {
+            // process the row here 
+            if (!err) {
+              const recipients = new Set<Recipient>();
+              const messages : MessageDto []= [];
+              let ChatAuthorId: string | null = null;
+              for (const row of rows) {
+                recipients.add(row.messageSenderId);
+                if (!ChatAuthorId)
+                  ChatAuthorId = row.ChatAuthorId;
+                if (row.messageId)
                   messages.push({
                     id: row.messageId,
                     userId: row.messageSenderId,
                     chatId: row.chatId,
                     date: row.date,
                     content: row.content
-                  } as MessageDto)
-                }
-                resolve({
-                  id,
-                  userId: ChatAuthorId,
-                  recipients: Array.from(recipients), 
-                  messages:  Array.from(messages)
-                } as ChatDto)
-              } else {
-                reject(-1)
+                  } as MessageDto);
               }
-            });
+              resolve({
+                id,
+                userId: ChatAuthorId,
+                recipients: Array.from(recipients), 
+                messages:  Array.from(messages)
+              } as ChatDto);
+            } else {
+              reject(-1);
+            }
+          });
         });
       } catch (error) {
         console.error(`Something went wrong: ${error}`);
-      } finally {
       }
-    })
+    });
   }
 
   
@@ -106,26 +105,25 @@ class ChatSqlite implements ChatInterface {
                         ORDER BY
                                 m.date asc
                             `,
-            [userId], (err, rows) => {
-              // process the row here 
-              if (!err) {
-                resolve(rows.map((r) => {
-                  return ({
-                    ...r
-                  }) as MessageDto;
+          [userId], (err, rows) => {
+            // process the row here 
+            if (!err) {
+              resolve(rows.map((r) => {
+                return ({
+                  ...r
+                }) as MessageDto;
 
-                }))
-              } else {
-                reject(-1)
-              }
-            });
+              }));
+            } else {
+              reject(-1);
+            }
+          });
         });
       } catch (error) {
         console.error(`Something went wrong: ${error}`);
-      } finally {
       }
-    })
+    });
   }
 }
 
-export default ChatSqlite
+export default ChatSqlite;

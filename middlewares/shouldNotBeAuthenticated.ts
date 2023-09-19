@@ -1,10 +1,10 @@
-import { NextFunction, Response, Request } from "express"
+import { NextFunction, Response, Request } from 'express';
 
-export default function (req: any, res: Response, next: NextFunction) {
+export default function (req: Request, res: Response, next: NextFunction) {
   if (req.session.userId) {
-    res.status(400)
-    res.json('user must not be authenticated')
-    return
+    res.status(400);
+    res.json('user must not be authenticated');
+    return;
   }
-  next()
+  next();
 }

@@ -4,4 +4,4 @@ interface MessageRequest {
   chatId?: number,
 }
 
-export default MessageRequest
+export default MessageRequest;

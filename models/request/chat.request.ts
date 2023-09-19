@@ -1,4 +1,4 @@
-import MessageRequest from "./message.request";
+import MessageRequest from './message.request';
 
 type Recipient = {
   uid: string
@@ -10,4 +10,4 @@ interface ChatRequest {
   messages: MessageRequest[]
 }
 
-export default ChatRequest
+export default ChatRequest;

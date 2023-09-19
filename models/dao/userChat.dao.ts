@@ -6,12 +6,12 @@ class UserChatDao {
   implementation: UserChatInterface;
 
   constructor(implementation: UserChatInterface   /*passer un UserchatSqlite ici */) {
-    this.implementation = implementation
+    this.implementation = implementation;
 
   }
   async create(data: UserChatDto) {
-    return await this.implementation.create(data)
+    return await this.implementation.create(data);
   }
 }
 
-export default UserChatDao
+export default UserChatDao;

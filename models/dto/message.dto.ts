@@ -6,4 +6,4 @@ interface MessageDto {
   date: number
 }
 
-export default MessageDto
+export default MessageDto;

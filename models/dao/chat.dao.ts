@@ -1,4 +1,3 @@
-import { RunResult } from 'sqlite3'
 import ChatInterface from '../../interface/chat.interface';
 import UserChatInterface from '../../interface/userChat.interface';
 import MessageInterface from '../../interface/message.interface';
@@ -19,40 +18,39 @@ class ChatDao {
     userChatImplementation: UserChatInterface,
     messageImplementation: MessageInterface  
     /*passer un chatSqlite ici */) {
-    this.chatImplementation = chatImplementation
-    this.userChatImplementation = userChatImplementation
-    this.messageImplementation = messageImplementation
+    this.chatImplementation = chatImplementation;
+    this.userChatImplementation = userChatImplementation;
+    this.messageImplementation = messageImplementation;
 
   }
 
-  async create(chatRequest: ChatRequest, messageContent: string): Promise<ChatDto> {
-    return await new Promise(async (resolve, reject) => {
+  async create(chatRequest: ChatRequest, messageContent: string): Promise<ChatDto | null> {
+    return await (async () => {
       try {
-        let runResult: RunResult
-        const chatDto = await this.chatImplementation.create(chatRequest)
+        const chatDto = await this.chatImplementation.create(chatRequest);
         //return runResult
-        const chatId = chatDto.lastID
-        runResult = await this.userChatImplementation.create(new UserChatDto({ chatId, userId: chatRequest.userId }))
+        const chatId = chatDto.lastID;
+        await this.userChatImplementation.create(new UserChatDto({ chatId, userId: chatRequest.userId }));
 
         for (const recipient of chatRequest.recipients!) {
-          const recipientId = recipient.uid
-          runResult = await this.userChatImplementation.create(new UserChatDto({ chatId, userId: recipientId }))
+          const recipientId = recipient.uid;
+          await this.userChatImplementation.create(new UserChatDto({ chatId, userId: recipientId }));
 
         }
-        const {userId} = chatRequest
-        runResult = await this.messageImplementation.create({content: messageContent, userId, chatId, date:Date.now()} as MessageDto)
-        resolve (await this.chatImplementation.findById(chatId))
+        const {userId} = chatRequest;
+        await this.messageImplementation.create({content: messageContent, userId, chatId, date:Date.now()} as MessageDto);
+        return (await this.chatImplementation.findById(chatId));
       } catch (error) {
         console.error(`Something went wrong: ${error}`);
-      } finally {
       }
-    })
+      return null;
+    })();
   }
 
   async getChatsAndMessagesRelatedToUser(userId: string): Promise<MessageDto[]> {
-    return await this.chatImplementation.getChatsAndMessagesRelatedToUser(userId)
+    return await this.chatImplementation.getChatsAndMessagesRelatedToUser(userId);
 
   }
 }
 
-export default ChatDao
+export default ChatDao;

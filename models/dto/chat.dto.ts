@@ -1,4 +1,4 @@
-import MessageDto from "./message.dto";
+import MessageDto from './message.dto';
 
 
 interface ChatDto {
@@ -8,7 +8,7 @@ interface ChatDto {
   messages: Partial<MessageDto>[]
 }
 
-export default ChatDto
+export default ChatDto;
 export type Recipient  = {
   uid: string
 }

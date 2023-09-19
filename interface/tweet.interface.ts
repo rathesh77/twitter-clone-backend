@@ -1,7 +1,7 @@
-import TweetDto from "../models/dto/tweet.dto";
-import UserTweetDto from "../models/dto/userTweet.dto";
+import TweetDto from '../models/dto/tweet.dto';
+import UserTweetDto from '../models/dto/userTweet.dto';
 
-export default interface TweetInterface {
+interface TweetInterface {
 
   create(tweet: TweetDto): Promise<UserTweetDto | null>;
   findAllTweetsUserInteractedWith(userId: string): Promise<UserTweetDto[] | null>;
@@ -19,3 +19,5 @@ export default interface TweetInterface {
   dislikeTweet(uid: string): Promise<TweetDto | null>;
   cancelTweetDislike(uid: string): Promise<TweetDto | null>;
 }
+
+export default TweetInterface;

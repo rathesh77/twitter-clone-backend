@@ -1,4 +1,4 @@
-import UserDto from "./user.dto"
+import UserDto from './user.dto';
 
 type Tweet = {
   content: string,
@@ -39,9 +39,9 @@ class TweetDto {
     this.shares = data.shares;
     this.uid = data.uid;
     this.userId = data.userId;
-    this.lastUpdated = Infinity
+    this.lastUpdated = Infinity;
   }
 
 }
 
-export default TweetDto
+export default TweetDto;

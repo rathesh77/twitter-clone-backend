@@ -1,5 +1,5 @@
-import neo4j, { Driver } from "neo4j-driver"
-import config from './config'
+import neo4j, { Driver } from 'neo4j-driver';
+import config from './config';
 
 type Node = { 
   label: string, 
@@ -21,20 +21,20 @@ class Neo4jDB {
   private static isInitialized: boolean = false;
 
   private constructor() {
-    this.uri = config.uri!
-    this.user = config.user!
-    this.password = config.password!
+    this.uri = config.uri!;
+    this.user = config.user!;
+    this.password = config.password!;
     this.driver = null;
     
-    console.log(config)
+    console.log(config);
   }
 
   public static __construct() {
     if (Neo4jDB.isInitialized || !config || !config.uri || !config.user || !config.password) {
-      return null
+      return null;
     }
-    Neo4jDB.isInitialized = true
-    return new Neo4jDB()
+    Neo4jDB.isInitialized = true;
+    return new Neo4jDB();
   }
 
   public connect() {
@@ -43,10 +43,10 @@ class Neo4jDB {
 
   public async createRelationship(relationship: Relationship) {
     if (!this.driver) {
-      return null
+      return null;
     }
-    const {leftNode, rightNode, relation} = relationship
-    const session = this.driver.session({ database: "neo4j" });
+    const {leftNode, rightNode, relation} = relationship;
+    const session = this.driver.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
@@ -54,10 +54,10 @@ class Neo4jDB {
           MERGE (b:${rightNode.label} {uid: $rightId })
           MERGE (a)-[:${relation}]->(b)
           RETURN a, b`;
-      const result = await tx.run(writeQuery, { leftId: leftNode.uid, rightId: rightNode.uid })
+      const result = await tx.run(writeQuery, { leftId: leftNode.uid, rightId: rightNode.uid });
       await tx.commit();
-      console.log("relationship created");
-      return {'a': result.records[0].get('a'), 'b': result.records[0].get('b')}
+      console.log('relationship created');
+      return {'a': result.records[0].get('a'), 'b': result.records[0].get('b')};
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -67,10 +67,10 @@ class Neo4jDB {
 
   async removeRelationship(relationship: Relationship) {
     if (!this.driver) {
-      return null
+      return null;
     }
-    const session = this.driver.session({ database: "neo4j" });
-    const {leftNode, rightNode, relation} = relationship
+    const session = this.driver.session({ database: 'neo4j' });
+    const {leftNode, rightNode, relation} = relationship;
 
     try {
       const tx = session.beginTransaction();
@@ -78,9 +78,9 @@ class Neo4jDB {
           MATCH (a: ${leftNode.label} {uid: $leftId })-[r:${relation}]->(b:${rightNode.label} {uid: $rightId })
           DELETE r
           `;
-      await tx.run(writeQuery, { leftId: leftNode.uid, rightId: rightNode.uid })
+      await tx.run(writeQuery, { leftId: leftNode.uid, rightId: rightNode.uid });
       await tx.commit();
-      console.log("relationship removed");
+      console.log('relationship removed');
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -89,16 +89,16 @@ class Neo4jDB {
   }
   async flushDB() {
     if (!this.driver) {
-      return null
+      return null;
     }
-    const session = this.driver.session({ database: "neo4j" });
+    const session = this.driver.session({ database: 'neo4j' });
 
     try {
       const tx = session.beginTransaction();
-      const writeQuery = `MATCH (n) DETACH DELETE n`;
-      tx.run(writeQuery)
-      await tx.commit()
-      console.info(`FLUSHED DATABASE`);
+      const writeQuery = 'MATCH (n) DETACH DELETE n';
+      tx.run(writeQuery);
+      await tx.commit();
+      console.info('FLUSHED DATABASE');
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -112,5 +112,5 @@ class Neo4jDB {
   }
 }
 
-export default Neo4jDB.__construct()
-export type { Relationship }
+export default Neo4jDB.__construct();
+export type { Relationship };
