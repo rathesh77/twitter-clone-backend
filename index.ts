@@ -28,6 +28,8 @@ import MessageDao from "./models/dao/message.dao";
 
 const chatDao = new ChatDao(new ChatSqlite, new UserchatSqlite(), new MessageSqlite())
 const messageDao = new MessageDao(new MessageSqlite())
+const userDao = new UserDao(new UserNeo4j())
+
 const app = express();
 const sessionMiddleware = session({
   secret: 'toto',
@@ -140,7 +142,8 @@ dotenv.config();
       socket.to(`chat/${message.chatId}`).emit('user_posted_message', { ...message, messageId: createdMessageId, date: Date.now() })
     })
 
-    socket.on('writing', async ({ user, chatId }) => {
+    socket.on('writing', async ({ chatId }) => {
+      const user = await userDao.findByUserId(socket.request.session.userId)
       socket.to(`chat/${chatId}`).emit('user_writing', { user, chatId })
     })
 
