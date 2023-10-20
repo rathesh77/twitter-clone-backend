@@ -30,11 +30,11 @@ class ChatDao {
         const chatDto = await this.chatImplementation.create(chatRequest);
         //return runResult
         const chatId = chatDto.lastID;
-        await this.userChatImplementation.create(new UserChatDto({ chatId, userId: chatRequest.userId }));
+        await this.userChatImplementation.create(({ chatId, userId: chatRequest.userId }));
 
         for (const recipient of chatRequest.recipients!) {
           const recipientId = recipient.uid;
-          await this.userChatImplementation.create(new UserChatDto({ chatId, userId: recipientId }));
+          await this.userChatImplementation.create(({ chatId, userId: recipientId }));
 
         }
         const {userId} = chatRequest;
