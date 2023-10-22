@@ -149,6 +149,10 @@ dotenv.config();
       socket.to(`chat/${chatId}`).emit('user_writing', { user, chatId });
     });
 
+    socket.on('webrtc:message', (data) =>  {
+      const { chatId } = data;
+      socket.to(`chat/${chatId}`).emit('webrtc:message', data);
+    });
   });
 
 
