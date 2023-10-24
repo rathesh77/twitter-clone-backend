@@ -87,10 +87,10 @@ dotenv.config();
     console.log('a user connected');
     socket.emit('message');
 
-    socket.on('get_chats', async (data) => {
+    socket.on('get_chats', async () => {
       //Chat.create(data)
       socket.join(socket.request.session.userId);
-      const chats = await chatDao.getChatsAndMessagesRelatedToUser(data.uid);
+      const chats = await chatDao.getChatsAndMessagesRelatedToUser(socket.request.session.userId);
       const seen: any = {};
       for (const _chat of chats) {
         const { chatId } = _chat;
