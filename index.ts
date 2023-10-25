@@ -141,7 +141,7 @@ dotenv.config();
       })).lastID;
 
       socket.emit('posted_message', createdMessageId);
-      socket.to(`chat/${message.chatId}`).emit('user_posted_message', { ...message, messageId: createdMessageId, date: Date.now() });
+      socket.to(`chat/${message.chatId}`).emit('user_posted_message', { ...message, messageId: createdMessageId, date: Date.now(), id: createdMessageId });
     });
 
     socket.on('writing', async ({ chatId }) => {
