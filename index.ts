@@ -120,6 +120,7 @@ dotenv.config();
       };
 
       const createdChat = await chatDao.create(chatRequest, content);
+      socket.join(`chat/${createdChat?.id}`);
       console.log('created chat', createdChat);
       socket.emit('chat_created', createdChat);
       for (const recipient of data.recipients) {
@@ -129,13 +130,10 @@ dotenv.config();
       }
     });
 
-    socket.on('join', async (chatId) => {
-      socket.join(`chat/${chatId}`);
-    });
 
     socket.on('post_message', async (message) => {
       const createdMessageId = (await messageDao.create({
-        userId: message.author,
+        userId: socket.request.session.userId,
         chatId: message.chatId,
         content: message.content
       })).lastID;
