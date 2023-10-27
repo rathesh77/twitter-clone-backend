@@ -11,26 +11,17 @@ import Neo4jDB from './database/neo4j.database';
 import tweetRoutes from './routes/tweet.routes';
 import userRoutes from './routes/user.routes';
 
-import initData from './initData';
-import ChatDao from './models/dao/chat.dao';
-import ChatSqlite from './implementation/sqlite/chat.sqlite';
+import initData from './init-data';
 import neo4jDatabase from './database/neo4j.database';
 import UserDao from './models/dao/user.dao';
 import TweetDao from './models/dao/tweet.dao';
 import TweetNeo4j from './implementation/neo4j/tweet.neo4j';
 import UserNeo4j from './implementation/neo4j/user.neo4j';
-import UserchatSqlite from './implementation/sqlite/userChat.sqlite';
-import MessageSqlite from './implementation/sqlite/message.sqlite';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as _ from './types';
-import MessageRequest from './models/request/message.request';
-import ChatRequest from './models/request/chat.request';
-import MessageDao from './models/dao/message.dao';
+import addListenersForSocket from './socket-io/socket-listeners';
 
-const chatDao = new ChatDao(new ChatSqlite, new UserchatSqlite(), new MessageSqlite());
-const messageDao = new MessageDao(new MessageSqlite());
-const userDao = new UserDao(new UserNeo4j());
 
 const app = express();
 const sessionMiddleware = session({
@@ -86,80 +77,8 @@ dotenv.config();
   io.on('connection', (socket) => {
     console.log('a user connected');
     socket.emit('message');
-
-    socket.on('get_chats', async () => {
-      //Chat.create(data)
-      socket.join(socket.request.session.userId);
-      const chats = await chatDao.getChatsAndMessagesRelatedToUser(socket.request.session.userId);
-      const seen: any = {};
-      for (const _chat of chats) {
-        const { chatId } = _chat;
-        if (chatId === undefined ){
-          continue;
-        }
-        if (!seen[chatId]) {
-          seen[chatId] = true;
-          if (!socket.rooms.has(`chat/${chatId}`))
-            socket.join(`chat/${chatId}`);
-        }
-      }
-      socket.emit('chats_list', chats);
-    });
-
-    socket.on('create_chat', async (data) => {
-      const userId = socket.request.session.userId;
-      const {recipients, content} = data;
-      
-      const firstMessage: MessageRequest = {
-        content,
-        userId,
-      };
-
-      const chatRequest: ChatRequest= {
-        userId, recipients, messages: [firstMessage]
-      };
-
-      const createdChat = await chatDao.create(chatRequest, content);
-      socket.join(`chat/${createdChat?.id}`);
-      console.log('created chat', createdChat);
-      socket.emit('chat_created', createdChat);
-      for (const recipient of data.recipients) {
-        if (recipient === userId)
-          continue;
-        socket.to(recipient.uid).emit('user_invited_you', createdChat);
-      }
-    });
-
-
-    socket.on('post_message', async (message) => {
-      const createdMessageId = (await messageDao.create({
-        userId: socket.request.session.userId,
-        chatId: message.chatId,
-        content: message.content
-      })).lastID;
-
-      socket.emit('posted_message', createdMessageId);
-      socket.to(`chat/${message.chatId}`).emit('user_posted_message', { ...message, messageId: createdMessageId, date: Date.now(), id: createdMessageId });
-    });
-
-    socket.on('writing', async ({ chatId }) => {
-      const user = await userDao.findByUserId(socket.request.session.userId);
-      socket.to(`chat/${chatId}`).emit('user_writing', { user, chatId });
-    });
-
-    socket.on('webrtc:message', (data) =>  {
-      const { chatId } = data;
-
-      if (data.type === 'offer' && data.initiator) 
-        socket.to(data.initiator).emit('webrtc:message', data);
-      else if (data.type === 'answer' && data.responder)
-        socket.to(data.responder).emit('webrtc:message', data);
-      else
-        socket.to(`chat/${chatId}`).emit('webrtc:message', data);
-      
-    });
+    addListenersForSocket(socket);
   });
-
 
   server.listen(8080, function () {
     console.log('app is listening on port 8080');
