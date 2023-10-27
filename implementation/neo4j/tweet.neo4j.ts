@@ -45,7 +45,8 @@ class TweetNeo4j implements TweetInterface {
                                       `;
       const mergeAuthorAndTweet = await tx.run(mergeAuthorAndTweetQuery, { userId, uid });
       await tx.commit();
-
+      if (!mergeAuthorAndTweet.records.length)
+        return null;
       const node = {
         leftNode: { label: 'User', uid: userId! },
         rightNode: { label: 'Tweet', uid: uid },
@@ -64,6 +65,7 @@ class TweetNeo4j implements TweetInterface {
 
       };
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.create');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -92,6 +94,7 @@ class TweetNeo4j implements TweetInterface {
         });
       }) as UserTweetDto[];
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.findAllTweetsUserInteractedWith');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -129,6 +132,7 @@ class TweetNeo4j implements TweetInterface {
       }
       ) as unknown as UserTweetDto[];
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.findAllRelatedTweetsToUser');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -145,7 +149,8 @@ class TweetNeo4j implements TweetInterface {
       const tweet = await tx.run(getTweetQuery, { uid });
 
       await tx.commit();
-
+      if (!tweet.records.length)
+        return null;
       return {
         tweet: tweet.records[0].get('t').properties,
         user: tweet.records[0].get('u').properties,
@@ -153,6 +158,7 @@ class TweetNeo4j implements TweetInterface {
 
       };
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.findById');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -176,6 +182,7 @@ class TweetNeo4j implements TweetInterface {
         });
       });
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.findInnerTweetsByTweetId');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -191,9 +198,11 @@ class TweetNeo4j implements TweetInterface {
       const tweet = await tx.run(getTweetQuery, { uid });
 
       await tx.commit();
-
+      if (!tweet.records.length)
+        return null;
       return tweet.records[0].get('t').properties;
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.increaseRepliesCount');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -209,8 +218,11 @@ class TweetNeo4j implements TweetInterface {
       const getTweetQuery = 'MATCH (t: Tweet {uid: $uid}) SET t.retweets = t.retweets + 1 RETURN t, t.uid AS uid LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid });
       await tx.commit();
+      if (!tweet.records.length)
+        return null;
       return tweet.records[0].get('t').properties;
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.retweet');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -225,8 +237,11 @@ class TweetNeo4j implements TweetInterface {
       const getTweetQuery = 'MATCH (t: Tweet {uid: $uid}) SET t.retweets = t.retweets - 1 RETURN t, t.uid AS uid LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid });
       await tx.commit();
+      if (!tweet.records.length)
+        return null;
       return tweet.records[0].get('t').properties;
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.cancelRetweet');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -241,6 +256,8 @@ class TweetNeo4j implements TweetInterface {
       const getTweetQuery = 'MATCH (u :User {uid: $userId})-[:RETWEETED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid, userId });
       await tx.commit();
+      if (!tweet.records.length)
+        return null;
       return {
         tweet: tweet.records[0].get('t').properties,
         user: tweet.records[0].get('u').properties,
@@ -248,6 +265,7 @@ class TweetNeo4j implements TweetInterface {
       };
       
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.findUserThatRetweeted');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -263,12 +281,15 @@ class TweetNeo4j implements TweetInterface {
       const getTweetQuery = 'MATCH (u :User {uid: $userId})-[:LIKED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid, userId });
       await tx.commit();
+      if (!tweet.records.length)
+        return null;
       return {
         tweet: tweet.records[0].get('t').properties,
         user: tweet.records[0].get('u').properties,
         relation: 'LIKED',
       };
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.findUserThatLiked');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -283,13 +304,15 @@ class TweetNeo4j implements TweetInterface {
       const getTweetQuery = 'MATCH (u :User {uid: $userId})-[:DISLIKED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid, userId });
       await tx.commit();
-      console.log(tweet.records)
+      if (!tweet.records.length)
+        return null;
       return {
         tweet: tweet.records[0].get('t').properties,
         user: tweet.records[0].get('u').properties,
         relation: 'DISLIKED',
       };
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.findUserThatDisliked');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -307,8 +330,11 @@ class TweetNeo4j implements TweetInterface {
       RETURN t, t.uid AS uid LIMIT 1`;
       const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
       await tx.commit();
+      if (!tweet.records.length)
+        return null;
       return tweet.records[0].get('t').properies;
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.likeTweet');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -326,9 +352,11 @@ class TweetNeo4j implements TweetInterface {
        RETURN t, t.uid AS uid LIMIT 1`;
       const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
       await tx.commit();
-      console.log(tweet.records)
+      if (!tweet.records.length)
+        return null;
       return tweet.records[0].get('t').properties;
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.cancelTweetLike');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -346,8 +374,11 @@ class TweetNeo4j implements TweetInterface {
       RETURN t, t.uid AS uid LIMIT 1`;
       const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
       await tx.commit();
+      if (!tweet.records.length)
+        return null;
       return tweet.records[0].get('t').properties;
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.dislikeTweet');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();
@@ -365,8 +396,11 @@ class TweetNeo4j implements TweetInterface {
       RETURN t, t.uid AS uid LIMIT 1`;
       const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
       await tx.commit();
+      if (!tweet.records.length)
+        return null;
       return tweet.records[0].get('t').properties;
     } catch (error) {
+      console.error('Error thrown in TweetNeo4j.cancelTweetDislike');
       console.error(`Something went wrong: ${error}`);
     } finally {
       await session.close();

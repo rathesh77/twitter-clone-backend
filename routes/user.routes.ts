@@ -3,8 +3,8 @@ import { Request, Response } from 'express';
 import * as express from 'express';
 import UserDao from '../models/dao/user.dao';
 import UserNeo4j from '../implementation/neo4j/user.neo4j';
-import shouldNotBeAuthenticated from '../middlewares/shouldNotBeAuthenticated';
-import shouldBeAuthenticated from '../middlewares/shouldBeAuthenticated';
+import shouldNotBeAuthenticated from '../middlewares/should-not-be-authenticated.middleware';
+import shouldBeAuthenticated from '../middlewares/should-be-authenticated.middleware';
 import neo4jDatabase from '../database/neo4j.database';
 
 const userDao = new UserDao(new UserNeo4j());
