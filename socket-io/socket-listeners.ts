@@ -79,6 +79,7 @@ const addListenersForSocket = (socket: Socket) => {
   socket.on('webrtc:message', (data) => {
     const { chatId } = data;
 
+    data.userId = socket.request.session.userId;
     if (data.type === 'offer' && data.initiator)
       socket.to(data.initiator).emit('webrtc:message', data);
     else if (data.type === 'answer' && data.responder)
