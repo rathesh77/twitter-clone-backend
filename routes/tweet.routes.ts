@@ -286,14 +286,14 @@ router.post('/likeTweet/:uid', shouldBeAuthenticated, async function (req, res) 
       return;
     }
     try {
-      const tweet = await tweetDao.findById(uid);
-      if (tweet == null) {
+      const userTweet = await tweetDao.findById(uid);
+      if (userTweet == null) {
         res.status(400);
         res.json({ msg: 'tweet doesnt exist' });
         return;
       }
 
-      if (tweet.tweet.lastUpdated && Date.now() - tweet.tweet.lastUpdated < 2000 ) {
+      if (userTweet.tweet.lastUpdated && Date.now() - userTweet.tweet.lastUpdated < 2000 ) {
         res.status(400);
         res.json({ msg: 'tweet was updated very recently' });
         return;
@@ -335,7 +335,7 @@ router.post('/likeTweet/:uid', shouldBeAuthenticated, async function (req, res) 
       }
 
       res.status(200);
-      res.json({ tweet, likesIncrement, dislikesIncrement });
+      res.json({ userTweet, likesIncrement, dislikesIncrement });
 
     } catch (e) {
       console.log(e);

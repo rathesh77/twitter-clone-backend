@@ -283,6 +283,7 @@ class TweetNeo4j implements TweetInterface {
       const getTweetQuery = 'MATCH (u :User {uid: $userId})-[:DISLIKED]->(t: Tweet {uid: $uid}) RETURN u, t LIMIT 1';
       const tweet = await tx.run(getTweetQuery, { uid, userId });
       await tx.commit();
+      console.log(tweet.records)
       return {
         tweet: tweet.records[0].get('t').properties,
         user: tweet.records[0].get('u').properties,
@@ -325,6 +326,7 @@ class TweetNeo4j implements TweetInterface {
        RETURN t, t.uid AS uid LIMIT 1`;
       const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
       await tx.commit();
+      console.log(tweet.records)
       return tweet.records[0].get('t').properties;
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
