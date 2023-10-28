@@ -182,7 +182,7 @@ class UserNeo4j implements UserInterface{
     
       await tx.commit();
       return results.records.map((r) => {
-        return ({...r.get('u').properties});
+        return ({...r.get('world').properties});
       });
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
