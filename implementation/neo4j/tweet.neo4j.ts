@@ -60,7 +60,7 @@ class TweetNeo4j implements TweetInterface {
 
       return {
         tweet: mergeAuthorAndTweet.records[0].get('t').properties,
-        user: mergeAuthorAndTweet.records[0].get('u').properties,
+        user: {...mergeAuthorAndTweet.records[0].get('u').properties, password: null},
         relation: 'WROTE_TWEET'
 
       };
@@ -89,7 +89,7 @@ class TweetNeo4j implements TweetInterface {
       return tweets.records.map((t) => {
         return ({
           tweet: t.get('t').properties,
-          user: t.get('u').properties,
+          user: {...t.get('u').properties, password: null},
           relation: t.get('type(r)'),
         });
       }) as UserTweetDto[];
@@ -125,7 +125,7 @@ class TweetNeo4j implements TweetInterface {
         return (
           {
             tweet: t.get('t').properties,
-            user: t.get('u').properties,
+            user: {...t.get('u').properties, password: null},
             relation: t.get('type(ut)')
           }
         );
@@ -153,7 +153,7 @@ class TweetNeo4j implements TweetInterface {
         return null;
       return {
         tweet: tweet.records[0].get('t').properties,
-        user: tweet.records[0].get('u').properties,
+        user: {...tweet.records[0].get('u').properties, password: null},
         relation: 'WROTE_TWEET'
 
       };
@@ -176,7 +176,7 @@ class TweetNeo4j implements TweetInterface {
       await tx.commit();
       return messages.records.map(t => {
         return ({
-          user: t.get('u').properties,
+          user: {...t.get('u').properties, password: null},
           tweet: t.get('m').properties,
           relation: 'WROTE_TWEET'
         });
@@ -260,7 +260,7 @@ class TweetNeo4j implements TweetInterface {
         return null;
       return {
         tweet: tweet.records[0].get('t').properties,
-        user: tweet.records[0].get('u').properties,
+        user: {...tweet.records[0].get('u').properties, password: null},
         relation: 'RETWEETED',
       };
       
@@ -285,7 +285,7 @@ class TweetNeo4j implements TweetInterface {
         return null;
       return {
         tweet: tweet.records[0].get('t').properties,
-        user: tweet.records[0].get('u').properties,
+        user: {...tweet.records[0].get('u').properties, password: null},
         relation: 'LIKED',
       };
     } catch (error) {
@@ -308,7 +308,7 @@ class TweetNeo4j implements TweetInterface {
         return null;
       return {
         tweet: tweet.records[0].get('t').properties,
-        user: tweet.records[0].get('u').properties,
+        user: {...tweet.records[0].get('u').properties, password: null},
         relation: 'DISLIKED',
       };
     } catch (error) {

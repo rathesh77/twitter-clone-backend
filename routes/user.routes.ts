@@ -30,7 +30,6 @@ router.post('/login', shouldNotBeAuthenticated, async function (req: Request, re
       return;
     }
     const currentUserNode = currentUser;
-    delete currentUserNode.password;
 
     req.session.userId = currentUserNode.uid!;
     res.status(200);
@@ -51,7 +50,6 @@ router.get('/me', shouldBeAuthenticated, async function (req: Request, res: Resp
       return;
     }
     const currentUserNode = currentUser;
-    delete currentUserNode.password; 
     res.status(200);
     res.json(currentUserNode);
   } catch (e) {
@@ -102,8 +100,6 @@ router.get('/user', shouldBeAuthenticated, async function (req: Request, res: Re
       res.json({ msg: 'error' });
       return;
     }
-    if (user.password)
-      delete user.password;
 
     res.status(200);
     res.json(user);

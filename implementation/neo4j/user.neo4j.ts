@@ -59,7 +59,7 @@ class UserNeo4j implements UserInterface{
 
       await tx.commit();
 
-      return author.records[0].get('u').properties as UserDto;
+      return {...author.records[0].get('u').properties, password: null} as UserDto;
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -82,7 +82,7 @@ class UserNeo4j implements UserInterface{
         return null;
       }
       await tx.commit();
-      return user.get('u').properties;
+      return {...user.get('u').properties, password: null};
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -102,7 +102,7 @@ class UserNeo4j implements UserInterface{
 
       await tx.commit();
 
-      return user.records[0].get('u').properties;
+      return {...user.records[0].get('u').properties, password: null};
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
     } finally {
@@ -121,7 +121,7 @@ class UserNeo4j implements UserInterface{
       }
       await tx.commit();
       return {
-        user: user.records[0].get('u').properties,
+        user: {...user.records[0].get('u').properties, password: null},
         relation: 'WROTE_TWEET',
         tweet: user.records[0].get('t').properties
       };
@@ -141,7 +141,7 @@ class UserNeo4j implements UserInterface{
 
       await tx.commit();
       return results.records.map((r) => {
-        return {...r.get('u').properties}as UserDto;
+        return {...r.get('u').properties, password: null} as UserDto;
       });
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
@@ -182,7 +182,7 @@ class UserNeo4j implements UserInterface{
     
       await tx.commit();
       return results.records.map((r) => {
-        return ({...r.get('world').properties});
+        return ({...r.get('world').properties, password: null});
       });
     } catch (error) {
       console.error(`Something went wrong: ${error}`);
