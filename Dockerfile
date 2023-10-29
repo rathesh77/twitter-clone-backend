@@ -6,6 +6,4 @@ COPY ./ .
 
 RUN npm install
 
-RUN mkdir uploads
-
-CMD [ "node", "index.js", "initData" ]
+CMD [ "npm", "run", "dev" ]
