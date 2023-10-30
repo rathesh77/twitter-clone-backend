@@ -1,6 +1,18 @@
 import * as express from 'express';
 import ipAddrs from '../cache/ip-addrs';
 
+const beforeMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction)=>{
+  const ip_addr = req.headers['x-forwarded-for'] || 
+     req.socket.remoteAddress;
+
+  if (!ip_addr) {
+    res.status(401).send('no ip found');
+    return;
+  }
+  res.locals.ip_addr = ip_addr + '';
+  next();
+};
+
 const tooManyRequestsMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction)=> {
   const {ip_addr} = res.locals;
   if (!ip_addr) {
@@ -26,4 +38,4 @@ const tooManyRequestsMiddleware = (req: express.Request, res: express.Response, 
   next();
 };
 
-export default tooManyRequestsMiddleware;
+export {tooManyRequestsMiddleware, beforeMiddleware};

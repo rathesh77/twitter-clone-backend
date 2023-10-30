@@ -5,10 +5,15 @@ import UserDao from '../models/dao/user.dao';
 import UserNeo4j from '../implementation/neo4j/user.neo4j';
 import shouldNotBeAuthenticated from '../middlewares/should-not-be-authenticated.middleware';
 import shouldBeAuthenticated from '../middlewares/should-be-authenticated.middleware';
+import { tooManyRequestsMiddleware, beforeMiddleware } from '../middlewares/too-many-requests.middleware';
+
 import neo4jDatabase from '../database/neo4j.database';
 
 const userDao = new UserDao(new UserNeo4j());
 const router = express.Router();
+
+router.use(beforeMiddleware);
+
 router.post('/login', shouldNotBeAuthenticated, async function (req: Request, res: Response) {
   const requestData = req.body;
   if (
@@ -146,7 +151,7 @@ router.post('/register', shouldNotBeAuthenticated, async function (req: Request,
 
 });
 
-router.put('/follow/:userId', shouldBeAuthenticated, async function (req: Request, res: Response) {
+router.put('/follow/:userId', shouldBeAuthenticated, tooManyRequestsMiddleware, async function (req: Request, res: Response) {
   const { userId } = req.params;
   if (!userId) {
     res.status(400);
@@ -156,8 +161,13 @@ router.put('/follow/:userId', shouldBeAuthenticated, async function (req: Reques
   const recipientId = userId;
 
   if (await userDao.doesUserFollowRecipient(req.session.userId, recipientId) !== false) {
-    res.status(400);
-    res.json({ msg: 'you already follow this user' });
+    res.status(200);
+    await neo4jDatabase!.removeRelationship({
+      leftNode:{ label: 'User', uid: req.session.userId },
+      rightNode:{ label: 'User', uid: recipientId },
+      relation:'KNOWS'
+    });
+    res.json({ isFollowing: false });
     return;
   }
 
@@ -167,7 +177,7 @@ router.put('/follow/:userId', shouldBeAuthenticated, async function (req: Reques
     relation:'KNOWS'
   });
   res.status(200);
-  res.json({ msg: 'success' });
+  res.json({ isFollowing: true });
 });
 
 router.get('/follow/:userId', shouldBeAuthenticated, async function (req: Request, res: Response) {
@@ -197,7 +207,7 @@ router.get('/suggestions', shouldBeAuthenticated, async function (req: Request, 
   res.json(suggestions);
 });
 
-router.get('/followers', shouldBeAuthenticated, async function (req: Request, res: Response) {
+router.get('/followers-count', shouldBeAuthenticated, async function (req: Request, res: Response) {
 
   const { id } = req.query;
   if (!id || typeof id !== 'string') {
@@ -211,7 +221,7 @@ router.get('/followers', shouldBeAuthenticated, async function (req: Request, re
   res.json({ count });
 });
 
-router.get('/followings', shouldBeAuthenticated, async function (req: Request, res: Response) {
+router.get('/followings-count', shouldBeAuthenticated, async function (req: Request, res: Response) {
 
   const { id } = req.query;
   if (!id || typeof id !== 'string') {

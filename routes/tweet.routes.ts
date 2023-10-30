@@ -7,24 +7,14 @@ import multer from 'multer';
 import TweetNeo4j from '../implementation/neo4j/tweet.neo4j';
 import neo4jDatabase from '../database/neo4j.database';
 import UserNeo4j from '../implementation/neo4j/user.neo4j';
-import tooManyRequestsMiddleware from '../middlewares/too-many-requests.middleware';
+import {tooManyRequestsMiddleware, beforeMiddleware} from '../middlewares/too-many-requests.middleware';
 
 const tweetDao = new TweetDao(new TweetNeo4j());
 const userDao = new UserDao(new UserNeo4j());
 
 const router = express.Router();
 
-router.use((req, res, next)=>{
-  const ip_addr = req.headers['x-forwarded-for'] || 
-     req.socket.remoteAddress;
-
-  if (!ip_addr) {
-    res.status(401).send('no ip found');
-    return;
-  }
-  res.locals.ip_addr = ip_addr + '';
-  next();
-});
+router.use(beforeMiddleware);
 
 
 const storage = multer.diskStorage({
@@ -54,7 +44,7 @@ router.post('/media', fileLimit, upload.single('file'), shouldBeAuthenticated, a
   res.json({ ...req.file });
 });
 
-router.post('/tweet', tooManyRequestsMiddleware, shouldBeAuthenticated, async function (req, res) {
+router.post('/tweet', shouldBeAuthenticated,tooManyRequestsMiddleware, async function (req, res) {
   const requestData = req.body.data;
   if (
     requestData.content == null ||
@@ -230,7 +220,7 @@ router.get('/tweet-author', shouldBeAuthenticated, async function (req, res) {
 
 });
 
-router.post('/retweet/:uid', tooManyRequestsMiddleware, shouldBeAuthenticated, async function (req, res) {
+router.post('/retweet/:uid', shouldBeAuthenticated, tooManyRequestsMiddleware, async function (req, res) {
   const { uid } = req.params;
   if (uid == null) {
     res.status(400);
@@ -280,7 +270,7 @@ router.post('/retweet/:uid', tooManyRequestsMiddleware, shouldBeAuthenticated, a
 
 });
 
-router.post('/likeTweet/:uid', tooManyRequestsMiddleware, shouldBeAuthenticated, async function (req, res) {
+router.post('/likeTweet/:uid', shouldBeAuthenticated,tooManyRequestsMiddleware, async function (req, res) {
   setTimeout(async ()=> {
     const { uid } = req.params;
     if (uid == null) {
@@ -360,7 +350,7 @@ router.post('/likeTweet/:uid', tooManyRequestsMiddleware, shouldBeAuthenticated,
 
 });
 
-router.post('/dislikeTweet/:uid', tooManyRequestsMiddleware, shouldBeAuthenticated, async function (req, res) {
+router.post('/dislikeTweet/:uid', shouldBeAuthenticated,tooManyRequestsMiddleware, async function (req, res) {
   setTimeout(async ()=> {
 
 
