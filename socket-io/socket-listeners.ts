@@ -84,7 +84,9 @@ const addListenersForSocket = (socket: Socket) => {
       socket.to(data.initiator).emit('webrtc:message', data);
     else if (data.type === 'answer' && data.responder)
       socket.to(data.responder).emit('webrtc:message', data);
-    else
+    else if (data.type === 'self-call') {
+      socket.emit('webrtc:message', {type: 'self-call', chatId});
+    } else
       socket.to(`chat/${chatId}`).emit('webrtc:message', data);
 
   });
