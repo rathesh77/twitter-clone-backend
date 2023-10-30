@@ -91,6 +91,6 @@ const addListenersForSocket = (socket: Socket) => {
 
   });
 
-}
+};
 
 export default addListenersForSocket;
