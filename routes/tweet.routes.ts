@@ -166,6 +166,28 @@ router.get('/tweet/:uid', shouldBeAuthenticated, async function (req, res) {
 
 });
 
+router.get('/liked-tweets/:userId', shouldBeAuthenticated, async function (req, res) {
+  const { userId } = req.params;
+  if (
+    userId == null
+    || typeof userId !== 'string'
+  ) {
+    res.status(400);
+    res.json({ msg: 'ersor' });
+    return;
+  }
+  try {
+
+    const tweets = await tweetDao.findLikedTweetsByUser(userId);
+    res.status(200);
+    res.json(tweets);
+  } catch (e) {
+    console.log(e);
+    res.status(400);
+    res.json('error:'+e);
+  }
+});
+
 router.get('/tweet/:uid/messages', shouldBeAuthenticated, async function (req, res) {
   const { uid } = req.params;
   if (

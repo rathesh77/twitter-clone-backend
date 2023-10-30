@@ -2,7 +2,7 @@ import TweetDto from '../models/dto/tweet.dto';
 import UserTweetDto from '../models/dto/userTweet.dto';
 
 interface TweetInterface {
-
+  findLikedTweetsByUser(userId: string): Promise<UserTweetDto[] | null>;
   create(tweet: TweetDto): Promise<UserTweetDto | null>;
   findAllTweetsUserInteractedWith(userId: string): Promise<UserTweetDto[] | null>;
   findAllRelatedTweetsToUser(userId: string): Promise<UserTweetDto[] | null>;

@@ -7,6 +7,33 @@ import TweetDto from '../../models/dto/tweet.dto';
 import UserTweetDto from '../../models/dto/userTweet.dto';
 
 class TweetNeo4j implements TweetInterface {
+  async findLikedTweetsByUser(userId: string): Promise<UserTweetDto[] | null> {
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
+
+    try {
+      const tx = session.beginTransaction();
+      const likedTweetsByUser = `
+      MATCH (u :User {uid: $userId})-[:LIKED]->(t: Tweet)<-[:WROTE_TWEET]-(world: User) RETURN DISTINCT t, world
+                                          `;
+      const tweets = await tx.run(likedTweetsByUser, { userId });
+
+      await tx.commit();
+
+      return tweets.records.map((t) => {
+        return ({
+          user: t.get('world').properties,
+          tweet: t.get('t').properties,
+          relation: 'WROTE_TWEET'
+        });
+      }) as UserTweetDto[];
+    } catch (error) {
+      console.error('Error thrown in TweetNeo4j.findLikedTweetsByUser');
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+    return null;
+  }
   async create(tweet: TweetDto): Promise<UserTweetDto | null> {
     const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 

@@ -9,6 +9,9 @@ class TweetDao implements TweetInterface {
   constructor(implementation: TweetInterface) {
     this.implementation = implementation;
   }
+  async findLikedTweetsByUser(userId: string): Promise<UserTweetDto[] | null> {
+    return await this.implementation.findLikedTweetsByUser(userId);
+  }
   async create(tweet: TweetDto): Promise<UserTweetDto | null> {
     return await this.implementation.create(tweet);
   }
