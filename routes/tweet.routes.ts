@@ -31,7 +31,7 @@ const upload = multer({ storage });
 
 const fileLimit = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const fileSize = parseInt(req.headers['content-length']!) / (10 ** 6);
-  if (fileSize > 512.0) {
+  if (fileSize > 50.0) {
     res.status(400);
     res.json({ msg: 'file size exceeded' });
     return;
