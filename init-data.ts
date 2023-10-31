@@ -3,22 +3,28 @@ import UserDao from './models/dao/user.dao';
 import TweetDao from './models/dao/tweet.dao';
 import neo4jDatabase from './database/neo4j.database';
 import TweetDto from './models/dto/tweet.dto';
+import TweetNeo4j from './implementation/neo4j/tweet.neo4j';
+import UserNeo4j from './implementation/neo4j/user.neo4j';
 
-async function initData(db: typeof Neo4jDB, userDao: UserDao, tweetDao: TweetDao) {
-  if (!db) {
+(async () => {
+  const userDao = new UserDao(new UserNeo4j());
+  const tweetDao = new TweetDao(new TweetNeo4j());
+  Neo4jDB!.connect();
+
+  if (!Neo4jDB) {
     return;
   }
   try {
-    await db.flushDB();
+    await Neo4jDB.flushDB();
 
-    const user = ({ username: 'test', email: 'test@', password: 'toto', avatar: 'https://i.imgflip.com/43j133.png', banner: 'https://previews.123rf.com/images/starlineart/starlineart1812/starlineart181200561/114211162-indian-flag-banner-with-geometric-pattern.jpg' });
+    const user = ({ username: 'test', email: 'test@', password: 'toto', avatar: 'https://list.lisimg.com/image/9768637/700full.jpg', banner: 'https://49.media.tumblr.com/61edc98494c766f54540a0b8425a3b04/tumblr_npt3odClI51u6nwqio1_540.gif' });
     const tweet: TweetDto = ({
       content: 'tweet',
       date: Date.now()
     });
-    const tweet2 : TweetDto = ({ 
-      content: 'message from tweet 1', 
-      date: Date.now() 
+    const tweet2: TweetDto = ({
+      content: 'message from tweet 1',
+      date: Date.now()
     });
     const createdUser = await userDao.create(user);
     const userId = createdUser!['uid']!;
@@ -59,7 +65,6 @@ async function initData(db: typeof Neo4jDB, userDao: UserDao, tweetDao: TweetDao
   } finally {
     //db.close();
     console.log('CLOSE DRIVER');
+    Neo4jDB.close();
   }
-}
-
-export default initData;
+})();
