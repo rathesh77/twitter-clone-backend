@@ -36,12 +36,12 @@ const fileLimit = (req: express.Request, res: express.Response, next: express.Ne
   next();
 };
 
-router.post('/media', fileLimit, upload.single('file'), shouldBeAuthenticated, async function (req, res) {
+router.post('/media', shouldBeAuthenticated, tooManyRequestsMiddleware, fileLimit, upload.single('file'), async function (req, res) {
   res.status(200);
   res.json({ ...req.file });
 });
 
-router.post('/tweet', shouldBeAuthenticated,tooManyRequestsMiddleware, async function (req, res) {
+router.post('/tweet', shouldBeAuthenticated, tooManyRequestsMiddleware, async function (req, res) {
   const requestData = req.body.data;
   if (
     requestData.content == null ||
