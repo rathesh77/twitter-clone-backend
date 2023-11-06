@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import dotenv from 'dotenv';
 import cors from 'cors';
 import session from 'express-session';
 import bodyParser from 'body-parser';
@@ -14,6 +13,7 @@ import neo4jDatabase from './database/neo4j.database';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as _ from './types';
 import addListenersForSocket from './socket-io/socket-listeners';
+import localIps from './get-local-ips'
 
 
 const app = express();
@@ -31,7 +31,7 @@ app.use(express.static('uploads'));
 app.use(bodyParser.json());
 app.use(cors({
   credentials: true,
-  origin: ['http://localhost:3000', 'http://192.168.0.21:3000']
+  origin: localIps
 }));
 app.use(sessionMiddleware);
 app.use('/', userRoutes);
@@ -40,7 +40,7 @@ app.use('/', tweetRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: localIps,
     credentials: true
   }
 });
@@ -55,7 +55,6 @@ io.use((socket, next) => {
   }
 });
 
-dotenv.config();
 
 (async () => {
 
