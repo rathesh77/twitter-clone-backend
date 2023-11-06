@@ -10,8 +10,7 @@ interface TweetDto {
   retweets?: number
   shares?: number
   uid?: string,
-  userId?: string,
-  lastUpdated?: number,
+  userId?: string
 }
 
 export default TweetDto;

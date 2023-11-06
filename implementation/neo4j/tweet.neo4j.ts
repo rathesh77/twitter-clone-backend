@@ -352,10 +352,9 @@ class TweetNeo4j implements TweetInterface {
     try {
       const tx = session.beginTransaction();
       const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) 
-      SET t.lastUpdated = $lastUpdated,
-      t.likes = t.likes + 1 
+      SET t.likes = t.likes + 1 
       RETURN t, t.uid AS uid LIMIT 1`;
-      const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
+      const tweet = await tx.run(getTweetQuery, { uid });
       await tx.commit();
       if (!tweet.records.length)
         return null;
@@ -374,10 +373,9 @@ class TweetNeo4j implements TweetInterface {
     try {
       const tx = session.beginTransaction();
       const getTweetQuery = `MATCH (t: Tweet {uid: $uid})
-      SET t.lastUpdated = $lastUpdated,
-      t.likes = t.likes - 1 
+      SET t.likes = t.likes - 1 
        RETURN t, t.uid AS uid LIMIT 1`;
-      const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
+      const tweet = await tx.run(getTweetQuery, { uid });
       await tx.commit();
       if (!tweet.records.length)
         return null;
@@ -396,10 +394,9 @@ class TweetNeo4j implements TweetInterface {
     try {
       const tx = session.beginTransaction();
       const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) 
-      SET t.lastUpdated = $lastUpdated ,
-      t.dislikes = t.dislikes + 1 
+      SET t.dislikes = t.dislikes + 1 
       RETURN t, t.uid AS uid LIMIT 1`;
-      const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
+      const tweet = await tx.run(getTweetQuery, { uid });
       await tx.commit();
       if (!tweet.records.length)
         return null;
@@ -418,10 +415,9 @@ class TweetNeo4j implements TweetInterface {
     try {
       const tx = session.beginTransaction();
       const getTweetQuery = `MATCH (t: Tweet {uid: $uid}) 
-      SET t.lastUpdated = $lastUpdated,
-      t.dislikes = t.dislikes - 1 
+      SET t.dislikes = t.dislikes - 1 
       RETURN t, t.uid AS uid LIMIT 1`;
-      const tweet = await tx.run(getTweetQuery, { uid, lastUpdated: Date.now() });
+      const tweet = await tx.run(getTweetQuery, { uid });
       await tx.commit();
       if (!tweet.records.length)
         return null;

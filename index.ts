@@ -13,8 +13,7 @@ import neo4jDatabase from './database/neo4j.database';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as _ from './types';
 import addListenersForSocket from './socket-io/socket-listeners';
-import localIps from './get-local-ips'
-
+import localIps from './get-local-ips';
 
 const app = express();
 const sessionMiddleware = session({

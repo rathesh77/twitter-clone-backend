@@ -1,41 +1,28 @@
 import * as express from 'express';
-import ipAddrs from '../cache/ip-addrs';
+import cache from '../cache/user-actions.cache';
 
-const beforeMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction)=>{
-  const ip_addr = req.headers['x-forwarded-for'] || 
-     req.socket.remoteAddress;
-
-  if (!ip_addr) {
-    res.status(401).send('no ip found');
-    return;
-  }
-  res.locals.ip_addr = ip_addr + '';
-  next();
-};
+const TIMEOUT_DELAY = 2000;
 
 const tooManyRequestsMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction)=> {
-  const {ip_addr} = res.locals;
-  if (!ip_addr) {
-    res.status(401).send('no ip found');
-    return;
-  }
 
-  if (!ipAddrs[ip_addr]) {
-    ipAddrs[ip_addr] = {};
-    ipAddrs[ip_addr][req.route.path] = Date.now();
-  } else if (!ipAddrs[ip_addr][req.route.path]) {
-    ipAddrs[ip_addr][req.route.path] = Date.now();
+  const sessionId = req.session.userId;
+  if (!cache[sessionId]) {
+    cache[sessionId] = {};
+    cache[sessionId][req.route.path] = Date.now();
+  } else if (!cache[sessionId][req.route.path]) {
+    cache[sessionId][req.route.path] = Date.now();
   } else {
-    const deltaTimePreviousRequest = Date.now() - ipAddrs[ip_addr][req.route.path];
-    if ( deltaTimePreviousRequest  < 2000) {
-      console.log(`${ip_addr} is spamming the API`);
+    const deltaTimePreviousRequest = Date.now() - cache[sessionId][req.route.path];
+    if ( deltaTimePreviousRequest  < TIMEOUT_DELAY) {
+      console.log(`${sessionId} is spamming the API`);
       res.status(429);
+      res.setHeader('Retry-After', Math.ceil((TIMEOUT_DELAY - deltaTimePreviousRequest) / 1000));
       res.send('sending too many request');
       return;
     }
-    ipAddrs[ip_addr][req.route.path] = Date.now();
+    cache[sessionId][req.route.path] = Date.now();
   }
   next();
 };
 
-export {tooManyRequestsMiddleware, beforeMiddleware};
+export default tooManyRequestsMiddleware;

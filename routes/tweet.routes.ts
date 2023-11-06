@@ -7,15 +7,12 @@ import multer from 'multer';
 import TweetNeo4j from '../implementation/neo4j/tweet.neo4j';
 import neo4jDatabase from '../database/neo4j.database';
 import UserNeo4j from '../implementation/neo4j/user.neo4j';
-import {tooManyRequestsMiddleware, beforeMiddleware} from '../middlewares/too-many-requests.middleware';
+import tooManyRequestsMiddleware from '../middlewares/too-many-requests.middleware';
 
 const tweetDao = new TweetDao(new TweetNeo4j());
 const userDao = new UserDao(new UserNeo4j());
 
 const router = express.Router();
-
-router.use(beforeMiddleware);
-
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => {
@@ -301,16 +298,6 @@ router.post('/likeTweet/:uid', shouldBeAuthenticated,tooManyRequestsMiddleware, 
       return;
     }
 
-    if (!req.session.lastUpdatedTweet) {
-      req.session.lastUpdatedTweet = {
-        tweetId: uid,
-        lastUpdated: Date.now()
-      };
-    } else if (Date.now() - req.session.lastUpdatedTweet.lastUpdated < 2000) {
-      res.status(400);
-      res.json({ msg: 'pre-check : tweet was updated very recently' });
-      return;
-    }
     try {
       const userTweet = await tweetDao.findById(uid);
       if (userTweet == null) {
@@ -319,11 +306,6 @@ router.post('/likeTweet/:uid', shouldBeAuthenticated,tooManyRequestsMiddleware, 
         return;
       }
 
-      if (userTweet.tweet.lastUpdated && Date.now() - userTweet.tweet.lastUpdated < 2000 ) {
-        res.status(400);
-        res.json({ msg: 'tweet was updated very recently' });
-        return;
-      }
       let likesIncrement = 0;
       let dislikesIncrement = 0;
 
@@ -382,16 +364,7 @@ router.post('/dislikeTweet/:uid', shouldBeAuthenticated,tooManyRequestsMiddlewar
       res.json({ msg: 'error' });
       return;
     }
-    if (!req.session.lastUpdatedTweet) {
-      req.session.lastUpdatedTweet = {
-        tweetId: uid,
-        lastUpdated: Date.now()
-      };
-    } else if (Date.now() - req.session.lastUpdatedTweet.lastUpdated < 2000) {
-      res.status(400);
-      res.json({ msg: 'pre-check : tweet was updated very recently' });
-      return;
-    }
+
     try {
       const tweet = await tweetDao.findById(uid);
       if (tweet == null) {
@@ -399,11 +372,7 @@ router.post('/dislikeTweet/:uid', shouldBeAuthenticated,tooManyRequestsMiddlewar
         res.json({ msg: 'tweet doesnt exist' });
         return;
       }
-      if (tweet.tweet.lastUpdated && Date.now() - tweet.tweet.lastUpdated < 2000 ) {
-        res.status(400);
-        res.json({ msg: 'tweet was updated very recently' });
-        return;
-      }
+
       let dislikesIncrement = 0;
       let likesIncrement = 0;
       if (await tweetDao.findUserThatLiked(uid, req.session.userId!)) {

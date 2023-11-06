@@ -5,14 +5,12 @@ import UserDao from '../models/dao/user.dao';
 import UserNeo4j from '../implementation/neo4j/user.neo4j';
 import shouldNotBeAuthenticated from '../middlewares/should-not-be-authenticated.middleware';
 import shouldBeAuthenticated from '../middlewares/should-be-authenticated.middleware';
-import { tooManyRequestsMiddleware, beforeMiddleware } from '../middlewares/too-many-requests.middleware';
+import tooManyRequestsMiddleware from '../middlewares/too-many-requests.middleware';
 
 import neo4jDatabase from '../database/neo4j.database';
 
 const userDao = new UserDao(new UserNeo4j());
 const router = express.Router();
-
-router.use(beforeMiddleware);
 
 router.post('/login', shouldNotBeAuthenticated, async function (req: Request, res: Response) {
   const requestData = req.body;
