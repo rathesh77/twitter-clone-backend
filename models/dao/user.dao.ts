@@ -1,6 +1,7 @@
 import UserInterface from '../../interface/user.interface';
 import UserDto from '../dto/user.dto';
 import UserTweetDto from '../dto/userTweet.dto';
+import UserUpdate from '../request/user.request';
 
 class UserDao implements UserInterface {
   implementation: UserInterface;
@@ -37,6 +38,10 @@ class UserDao implements UserInterface {
   }
   async create(user: UserDto): Promise<UserDto | null> {
     return await this.implementation.create(user);
+  }
+
+  async put(userId: string, data: UserUpdate): Promise<UserDto | null> {
+    return await this.implementation.put(userId,data);
   }
 
 }

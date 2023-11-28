@@ -112,6 +112,27 @@ router.get('/user', shouldBeAuthenticated, async function (req: Request, res: Re
   }
 
 });
+
+
+router.put('/user', shouldBeAuthenticated, async function (req: Request, res: Response) {
+  try {
+    const data = req.body
+    const user = await userDao.findByUserId(req.session.userId);
+    if (!user) {
+      res.status(200);
+      res.json({ msg: 'error' });
+      return;
+    }
+
+    await userDao.put(req.session.userId, data);
+    res.status(200);
+    res.json(user);
+  } catch (e) {
+    res.status(400);
+    res.json(e);
+  }
+
+});
 router.post('/register', shouldNotBeAuthenticated, async function (req: Request, res: Response) {
   const requestData = req.body;
   if (

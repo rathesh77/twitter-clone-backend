@@ -27,6 +27,7 @@ const sessionMiddleware = session({
 
 
 app.use(express.static('uploads'));
+app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.json());
 app.use(cors({
   credentials: true,

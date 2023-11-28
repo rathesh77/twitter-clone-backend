@@ -4,6 +4,9 @@ import neo4jDatabase from '../../database/neo4j.database';
 import UserInterface from '../../interface/user.interface';
 import UserDto from '../../models/dto/user.dto';
 import UserTweetDto from '../../models/dto/userTweet.dto';
+import UserUpdate from '../../models/request/user.request';
+import fs from 'fs';
+
 const saltRounds = 10;
 
 class UserNeo4j implements UserInterface{
@@ -46,6 +49,67 @@ class UserNeo4j implements UserInterface{
     return null;
   }
   
+  async put(userId: string, data: UserUpdate): Promise<UserDto | null> {
+    
+    const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
+    let {username, email, avatar, banner} = data
+
+
+    let avatarUrl: string, bannerUrl: string
+    const parameters: any = {
+      uid: userId,
+    }
+    if (avatar) {
+      const buf = Buffer.from(avatar.base64String, 'base64'); // Ta-da
+
+      fs.writeFile(__dirname + '/../../uploads/'+avatar.name, buf, ()=>{});
+      avatarUrl = 'http://localhost:8080/'+avatar.name
+      console.log(__dirname + '/../../uploads/'+avatar.name)
+      parameters['avatar'] = avatarUrl
+
+    }
+
+    if (banner) {
+      const buf = Buffer.from(banner.base64String, 'base64'); // Ta-da
+      fs.writeFile(__dirname + '/../../uploads/'+banner.name, buf, ()=>{});
+      bannerUrl = 'http://localhost:8080/'+banner.name
+      console.log(__dirname + '/../../uploads/'+banner.name)
+
+      parameters['banner'] = bannerUrl
+
+    }
+
+    const columns = ['username', 'email', 'avatar', 'banner']
+    const strUpdate = columns.filter((e) => e in data ).map((e) => `u.${e} = $${e}`).join(', ')
+    try {
+      const writeQuery = `MATCH (u:User {uid: $uid})
+                          SET ${strUpdate}
+                              RETURN u
+                            `;
+
+      console.log(writeQuery)
+
+      if (username) {
+        parameters['username'] = username
+      }
+      if (email) {
+        parameters['email'] = email
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const writeResult:any = await session.writeTransaction((tx) =>
+        tx.run(writeQuery, parameters)
+      );
+
+      delete writeResult.records[0].password;
+      return writeResult.records[0].get('u').properties;
+    } catch (error) {
+      console.error(`Something went wrong: ${error}`);
+    } finally {
+      await session.close();
+    }
+    return null;
+  }
   async findByUserId(userId: string): Promise<UserDto | null> {
     const session = neo4jDatabase!.driver!.session({ database: 'neo4j' });
 
